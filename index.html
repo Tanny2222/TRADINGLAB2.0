@@ -62,25 +62,6 @@
         <input type="text" id="f_tradeNo" class="mono" readonly aria-readonly="true">
       </div>
       <div class="field">
-        <label>DATE</label>
-        <input type="date" id="f_date">
-      </div>
-      <div class="field grow">
-        <label>ASSET / PAIR</label>
-        <input type="text" id="f_asset" placeholder="เช่น XAUUSD, BTCUSD">
-      </div>
-      <div class="field">
-        <label>TIMEFRAME</label>
-        <input type="text" id="f_timeframe" placeholder="H1 / H4 / D1">
-      </div>
-      <div class="field">
-        <label>DIRECTION</label>
-        <div class="pill-toggle" data-field="direction">
-          <button type="button" data-val="Long" class="pill pill-long">LONG</button>
-          <button type="button" data-val="Short" class="pill pill-short">SHORT</button>
-        </div>
-      </div>
-      <div class="field">
         <label>RESULT</label>
         <div class="pill-toggle" data-field="result">
           <button type="button" data-val="Win" class="pill pill-win">WIN</button>
@@ -95,6 +76,16 @@
       <div class="panel">
         <div class="panel-head head-info"><span class="ico">◧</span> TRADE INFORMATION</div>
         <div class="panel-body cols-in-panel">
+          <div class="field"><label>DATE</label><input type="date" id="f_date"></div>
+          <div class="field"><label>ASSET / PAIR</label><input type="text" id="f_asset" placeholder="เช่น XAUUSD, BTCUSD"></div>
+          <div class="field"><label>TIMEFRAME</label><input type="text" id="f_timeframe" placeholder="H1 / H4 / D1"></div>
+          <div class="field">
+            <label>DIRECTION</label>
+            <div class="pill-toggle" data-field="direction">
+              <button type="button" data-val="Long" class="pill pill-long">LONG</button>
+              <button type="button" data-val="Short" class="pill pill-short">SHORT</button>
+            </div>
+          </div>
           <div class="field"><label>Entry Time</label><input type="time" id="f_entryTime"></div>
           <div class="field"><label>Exit Time</label><input type="time" id="f_exitTime"></div>
           <div class="field"><label>Entry Price</label><input type="text" class="mono" id="f_entryPrice"></div>
