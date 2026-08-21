@@ -64,6 +64,7 @@ function blankTrade(){
     tags: [],
     images: {}, // slot -> {driveId, name, thumbnailLink, webViewLink, localDataUrl}
     beforeSlotCount: 1,
+    afterSlotCount: 1,
   };
 }
 
@@ -327,6 +328,12 @@ function bindImageSlots(){
     const slot = `before_chart_${nextNumber}`;
     openAnnotateModal(slot, false, slot);
   };
+  document.getElementById("addAfterImageBtn").onclick = () => {
+    const nextNumber = Math.min(4, Math.max(1, current.afterSlotCount || 1) + 1);
+    if(nextNumber <= (current.afterSlotCount || 1)) return;
+    const slot = `after_chart_${nextNumber}`;
+    openAnnotateModal(slot, false, slot);
+  };
 }
 function bindImageSlotElement(slotEl){
   if(slotEl.dataset.bound === "true") return;
@@ -368,6 +375,41 @@ function migrateLegacyBeforeImages(){
   legacyImages.forEach((image, index) => { current.images[`before_chart_${index + 1}`] = image; });
   legacyKeys.forEach(key => { delete current.images[key]; });
 }
+function createAfterImageSlot(number){
+  const gallery = document.getElementById("afterImageGallery");
+  if(!gallery || number <= 1 || number > 4) return;
+  const slot = `after_chart_${number}`;
+  if(gallery.querySelector(`[data-slot="${slot}"]`)) return;
+  const slotEl = document.createElement("div");
+  slotEl.className = "imgslot after-dynamic";
+  slotEl.dataset.slot = slot;
+  slotEl.innerHTML = `<div class="imgslot-label">${number}. Additional Chart</div><div class="imgslot-canvas-wrap"></div>`;
+  gallery.appendChild(slotEl);
+  bindImageSlotElement(slotEl);
+  renderImageSlot(slot);
+}
+function syncAfterImageSlots(){
+  document.querySelectorAll(".after-dynamic").forEach(el => el.remove());
+  migrateLegacyAfterImages();
+  const highestImageNumber = Object.keys(current.images || {}).reduce((highest, key) => {
+    const match = key.match(/^after_chart_([1-4])$/);
+    return match ? Math.max(highest, Number(match[1])) : highest;
+  }, 1);
+  const count = Math.min(4, Math.max(1, highestImageNumber));
+  current.afterSlotCount = count;
+  for(let number = 2; number <= count; number++) createAfterImageSlot(number);
+  document.getElementById("afterImageGallery").classList.toggle("single-slot", count === 1);
+  const addButton = document.getElementById("addAfterImageBtn");
+  addButton.disabled = count >= 4;
+  addButton.textContent = count >= 4 ? "เพิ่มรูปครบ 4 รูปแล้ว" : "＋ Add Image";
+}
+function migrateLegacyAfterImages(){
+  if(Object.keys(current.images || {}).some(key => /^after_chart_[1-4]$/.test(key))) return;
+  const legacyKeys = ["after_result", "after_exit", "after_detail"];
+  const legacyImages = legacyKeys.map(key => current.images[key]).filter(Boolean).slice(0, 4);
+  legacyImages.forEach((image, index) => { current.images[`after_chart_${index + 1}`] = image; });
+  legacyKeys.forEach(key => { delete current.images[key]; });
+}
 function bindNoteHandButtons(){
   document.querySelectorAll(".hand-btn").forEach(btn => {
     btn.addEventListener("click", (e) => {
@@ -379,6 +421,7 @@ function bindNoteHandButtons(){
 }
 function renderAllImageSlots(){
   syncBeforeImageSlots();
+  syncAfterImageSlots();
   document.querySelectorAll("[data-slot]").forEach(slotEl => renderImageSlot(slotEl.dataset.slot));
 }
 function renderImageSlot(slot){
@@ -387,8 +430,8 @@ function renderImageSlot(slot){
   if(!wrap) return;
   slotEl.querySelector(".image-delete-btn")?.remove();
   const img = current.images[slot];
-  const beforeNumber = Number(slot.match(/^before_chart_([1-4])$/)?.[1] || 0);
-  const isAdditional = beforeNumber >= 2;
+  const chartMatch = slot.match(/^(before|after)_chart_([1-4])$/);
+  const isAdditional = Number(chartMatch?.[2] || 0) >= 2;
   if(img && (img.thumbnailLink || img.localDataUrl)){
     wrap.innerHTML = `<img src="${img.thumbnailLink || img.localDataUrl}" alt="">`;
   } else {
@@ -410,7 +453,9 @@ function renderImageSlot(slot){
 }
 
 async function deleteImageFromSlot(slot){
-  const isAdditional = Number(slot.match(/^before_chart_([1-4])$/)?.[1] || 0) >= 2;
+  const chartMatch = slot.match(/^(before|after)_chart_([1-4])$/);
+  const chartGroup = chartMatch?.[1] || "";
+  const isAdditional = Number(chartMatch?.[2] || 0) >= 2;
   if(!current.images[slot] && !isAdditional) return false;
   const message = isAdditional
     ? "ลบกล่อง Additional Chart และรูปนี้ รวมถึงไฟล์ใน Google Drive?"
@@ -441,15 +486,17 @@ async function deleteImageFromSlot(slot){
   delete current.images[slot];
 
   if(isAdditional){
+    const chartPattern = new RegExp(`^${chartGroup}_chart_([1-4])$`);
     const remaining = Object.entries(current.images)
-      .filter(([key]) => Number(key.match(/^before_chart_([1-4])$/)?.[1] || 0) >= 2)
+      .filter(([key]) => Number(key.match(chartPattern)?.[1] || 0) >= 2)
       .sort(([a], [b]) => Number(a.split("_").pop()) - Number(b.split("_").pop()))
       .map(([, image]) => image);
     Object.keys(current.images).forEach(key => {
-      if(Number(key.match(/^before_chart_([1-4])$/)?.[1] || 0) >= 2) delete current.images[key];
+      if(Number(key.match(chartPattern)?.[1] || 0) >= 2) delete current.images[key];
     });
-    remaining.forEach((image, index) => { current.images[`before_chart_${index + 2}`] = image; });
-    current.beforeSlotCount = 1 + remaining.length;
+    remaining.forEach((image, index) => { current.images[`${chartGroup}_chart_${index + 2}`] = image; });
+    if(chartGroup === "before") current.beforeSlotCount = 1 + remaining.length;
+    if(chartGroup === "after") current.afterSlotCount = 1 + remaining.length;
     renderAllImageSlots();
   } else {
     renderImageSlot(slot);
@@ -739,8 +786,13 @@ async function handleUpload(){
     const blob = await (await fetch(dataUrl)).blob();
     const tradeNo = String(current.fields.f_tradeNo || "trade").replace(/[^a-zA-Z0-9_-]/g, "-");
     const beforeFilenameMatch = activeSlotKey.match(/^before_chart_([1-4])$/);
+    const afterFilenameMatch = activeSlotKey.match(/^after_chart_([1-4])$/);
     const slotName = String(activeSlotKey || "image").replace(/[^a-zA-Z0-9_-]/g, "-");
-    const filename = beforeFilenameMatch ? `${tradeNo}_before_${beforeFilenameMatch[1]}.png` : `${tradeNo}_${slotName}.png`;
+    const filename = beforeFilenameMatch
+      ? `${tradeNo}_before_${beforeFilenameMatch[1]}.png`
+      : afterFilenameMatch
+        ? `${tradeNo}_after_${afterFilenameMatch[1]}.png`
+        : `${tradeNo}_${slotName}.png`;
 
     const metadata = { name: filename, parents:[folderId] };
     const form = new FormData();
@@ -779,6 +831,12 @@ async function handleUpload(){
         const number = Number(beforeMatch[1]);
         current.beforeSlotCount = Math.min(4, Math.max(1, current.beforeSlotCount || 1, number));
         syncBeforeImageSlots();
+      }
+      const afterMatch = activeSlotKey.match(/^after_chart_([1-4])$/);
+      if(afterMatch){
+        const number = Number(afterMatch[1]);
+        current.afterSlotCount = Math.min(4, Math.max(1, current.afterSlotCount || 1, number));
+        syncAfterImageSlots();
       }
       renderImageSlot(activeSlotKey);
     }

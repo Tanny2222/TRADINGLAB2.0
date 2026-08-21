@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260821-05">
+<link rel="stylesheet" href="style.css?v=20260821-06">
 </head>
 <body>
 
@@ -165,7 +165,7 @@
       <div class="panel">
         <div class="panel-head head-before"><span class="ico">◎</span> BEFORE TRADE (Setup Analysis)</div>
         <div class="panel-body">
-          <div id="beforeImageGallery" class="before-image-gallery">
+          <div id="beforeImageGallery" class="trade-image-gallery">
             <div class="imgslot" data-slot="before_chart_1">
               <div class="imgslot-label">1. Additional Chart</div>
               <div class="imgslot-canvas-wrap"></div>
@@ -183,20 +183,13 @@
       <div class="panel">
         <div class="panel-head head-after"><span class="ico">⚑</span> AFTER TRADE (Result & Review)</div>
         <div class="panel-body">
-          <div class="imgslot-full" data-slot="after_result">
-            <div class="imgslot-label">1. Result Overview</div>
-            <div class="imgslot-canvas-wrap"></div>
-          </div>
-          <div class="row2">
-            <div class="imgslot" data-slot="after_exit">
-              <div class="imgslot-label">2. Exit Timeframe</div>
-              <div class="imgslot-canvas-wrap"></div>
-            </div>
-            <div class="imgslot" data-slot="after_detail">
-              <div class="imgslot-label">3. Detail / Indicator</div>
+          <div id="afterImageGallery" class="trade-image-gallery single-slot">
+            <div class="imgslot" data-slot="after_chart_1">
+              <div class="imgslot-label">1. Additional Chart</div>
               <div class="imgslot-canvas-wrap"></div>
             </div>
           </div>
+          <button id="addAfterImageBtn" type="button" class="btn btn-ghost small add-image-btn">＋ Add Image</button>
           <div class="field notefield">
             <label>✎ Notes After Trade</label>
             <textarea id="f_notesAfter" rows="2"></textarea>
@@ -341,6 +334,6 @@
 
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="config.js"></script>
-<script src="app.js?v=20260821-05"></script>
+<script src="app.js?v=20260821-06"></script>
 </body>
 </html>
