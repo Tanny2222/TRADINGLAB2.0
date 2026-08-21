@@ -571,7 +571,7 @@ function openAnnotateModal(key, isNote, titleKey){
 
   if(existing && existing.localDataUrl){
     const im = new Image();
-    im.onload = () => { baseImage = im; sizeCanvasToImage(im, maxW); redraw(); };
+    im.onload = () => { baseImage = im; sizeCanvasToImage(im); redraw(); };
     im.src = existing.localDataUrl;
     document.getElementById("canvasEmpty").style.display = "none";
   } else if(isNote){
@@ -585,10 +585,9 @@ function openAnnotateModal(key, isNote, titleKey){
     redraw();
   }
 }
-function sizeCanvasToImage(im, maxW){
-  const scale = Math.min(maxW / im.width, 1);
-  canvas().width = Math.round(im.width * scale);
-  canvas().height = Math.round(im.height * scale);
+function sizeCanvasToImage(im){
+  canvas().width = im.naturalWidth || im.width;
+  canvas().height = im.naturalHeight || im.height;
 }
 function closeAnnotateModal(){
   document.getElementById("annotateModal").classList.remove("active");
@@ -697,9 +696,7 @@ function loadImageBlob(blob){
     const im = new Image();
     im.onload = () => {
       baseImage = im;
-      const stage = document.querySelector(".canvas-stage");
-      const maxW = Math.min(stage.clientWidth - 20, 640);
-      sizeCanvasToImage(im, maxW);
+      sizeCanvasToImage(im);
       strokes = [];
       document.getElementById("canvasEmpty").style.display = "none";
       redraw();
@@ -737,6 +734,8 @@ function endStroke(){
 function redraw(live){
   const c = canvas();
   const ctx = c.getContext("2d");
+  const displayWidth = c.getBoundingClientRect().width || c.width;
+  const displayScale = c.width / displayWidth;
   ctx.clearRect(0,0,c.width,c.height);
   if(baseImage) ctx.drawImage(baseImage,0,0,c.width,c.height);
   const all = live && currentStroke ? [...strokes, currentStroke] : strokes;
@@ -748,7 +747,7 @@ function redraw(live){
     ctx.moveTo(s.points[0].x, s.points[0].y);
     for(let i=1;i<s.points.length;i++){
       const pt = s.points[i];
-      ctx.lineWidth = s.size * (0.6 + pt.p);
+      ctx.lineWidth = s.size * displayScale * (0.6 + pt.p);
       ctx.lineTo(pt.x, pt.y);
     }
     ctx.stroke();
