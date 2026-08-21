@@ -939,6 +939,7 @@ function openTrade(id){
 function renderTicker(){
   const el = document.getElementById("ticker");
   const wrap = el.closest(".ticker-wrap");
+  document.body.classList.toggle("has-ticker", trades.length > 0);
   if(trades.length===0){ el.innerHTML = ""; wrap.style.display = "none"; return; }
   wrap.style.display = "";
   const sorted = [...trades].sort((a,b)=>(b.updatedAt||b.createdAt)-(a.updatedAt||a.createdAt)).slice(0,20);

@@ -161,8 +161,13 @@ button{font-family:var(--font-body);cursor:pointer;}
   display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;
   background:var(--panel);border:1px solid var(--border-soft);
   border-radius:var(--radius);padding:16px;margin-bottom:16px;
+  position:sticky;top:0;z-index:14;
+  box-shadow:0 10px 26px rgba(0,0,0,.24);
 }
+body.has-ticker .sheet-header{top:34px;}
 .sheet-header > .field{margin-bottom:0;}
+.sheet-header-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-left:auto;}
+.sheet-header-actions .save-status{margin-right:4px;}
 .trade-number-field{max-width:90px;}
 .field{min-width:110px;margin-bottom:12px;}
 .field.grow{flex:1;min-width:180px;}
@@ -220,6 +225,7 @@ button{font-family:var(--font-body);cursor:pointer;}
   .sidebar-collapsed .menu-label{display:inline;}
   .sidebar-collapsed .topbar-actions .btn{justify-content:flex-start;text-align:center;padding:9px 14px;}
   .sidebar-collapsed .side-menu-item{gap:12px;}
+  .sheet-header,body.has-ticker .sheet-header{position:relative;top:auto;}
 }
 @media (max-width:640px){
   .sidebar{align-items:flex-start;flex-direction:column;}
@@ -354,12 +360,8 @@ button{font-family:var(--font-body);cursor:pointer;}
 .tag-chip:hover{border-color:var(--purple);}
 .tag-chip.active{background:var(--purple);border-color:var(--purple);color:#160B2E;}
 
-/* ============ SAVE BAR ============ */
-.save-bar{
-  display:flex;align-items:center;justify-content:flex-end;gap:12px;
-  margin-top:18px;padding:14px 4px;
-}
-.save-status{margin-right:auto;font-size:12px;color:var(--text-dim);}
+/* ============ SAVE STATUS ============ */
+.save-status{font-size:12px;color:var(--text-dim);}
 
 /* ============ LIST VIEW ============ */
 .list-toolbar{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;}

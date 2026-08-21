@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20260821-12">
+  <link rel="stylesheet" href="style.css?v=20260821-13">
 </head>
 <body>
 
@@ -63,6 +63,11 @@
           <button type="button" data-val="Loss" class="pill pill-loss">LOSS</button>
           <button type="button" data-val="BE" class="pill pill-be">BE</button>
         </div>
+      </div>
+      <div class="sheet-header-actions">
+        <div id="saveStatus" class="save-status"></div>
+        <button id="deleteTradeBtn" class="btn btn-danger" style="display:none">ลบเทรดนี้</button>
+        <button id="saveTradeBtn" class="btn btn-primary">💾 บันทึกเทรด</button>
       </div>
     </div>
 
@@ -257,12 +262,6 @@
       </div>
     </div>
 
-    <div class="save-bar">
-      <div id="saveStatus" class="save-status"></div>
-      <button id="deleteTradeBtn" class="btn btn-danger" style="display:none">ลบเทรดนี้</button>
-      <button id="saveTradeBtn" class="btn btn-primary">💾 บันทึกเทรด</button>
-    </div>
-
   </section>
 </main>
 
@@ -317,6 +316,6 @@
 
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="config.js"></script>
-<script src="app.js?v=20260821-12"></script>
+<script src="app.js?v=20260821-13"></script>
 </body>
 </html>
