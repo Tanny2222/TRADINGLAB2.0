@@ -742,11 +742,10 @@ function requestDriveAccess(){
   tokenClient.requestAccessToken({ prompt: accessToken ? "" : "consent" });
 }
 function setDriveStatus(connected){
-  const el = document.getElementById("driveStatus");
-  el.classList.toggle("connected", connected);
-  el.classList.toggle("disconnected", !connected);
-  document.getElementById("driveStatusText").textContent = connected ? "Drive: เชื่อมต่อแล้ว" : "Drive: ไม่ได้เชื่อมต่อ";
-  document.getElementById("connectDriveBtn").textContent = connected ? "🔄 ต่ออายุสิทธิ์" : "เชื่อมต่อ Google Drive";
+  const button = document.getElementById("connectDriveBtn");
+  button.classList.toggle("connected", connected);
+  button.classList.toggle("disconnected", !connected);
+  document.getElementById("driveStatusText").textContent = connected ? "Google Drive เชื่อมต่อแล้ว" : "เชื่อมต่อ Google Drive";
 }
 
 async function ensureDriveFolder(){
@@ -894,7 +893,9 @@ function openTrade(id){
 // ============================================================
 function renderTicker(){
   const el = document.getElementById("ticker");
-  if(trades.length===0){ el.innerHTML = `<div class="ticker-empty">ยังไม่มีเทรดที่บันทึก — เริ่มบันทึกเทรดแรกของคุณได้เลย</div>`; return; }
+  const wrap = el.closest(".ticker-wrap");
+  if(trades.length===0){ el.innerHTML = ""; wrap.style.display = "none"; return; }
+  wrap.style.display = "";
   const sorted = [...trades].sort((a,b)=>(b.updatedAt||b.createdAt)-(a.updatedAt||a.createdAt)).slice(0,20);
   el.innerHTML = sorted.map(t => {
     const res = t.toggles?.result || "-";

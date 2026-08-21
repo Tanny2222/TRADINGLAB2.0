@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260821-07">
+  <link rel="stylesheet" href="style.css?v=20260821-08">
 </head>
 <body>
 
@@ -15,23 +15,18 @@
 <aside class="sidebar">
   <div class="sidebar-head">
     <div class="brand">
-      <div class="brand-mark">TJ</div>
+      <button id="sidebarToggle" class="brand-mark" type="button" aria-label="พับเมนูด้านข้าง" title="เปิด/ปิดเมนู">TJ</button>
       <div class="brand-text">
         <h1>TRADING JOURNAL</h1>
         <span>Plan · Execute · Review · Improve</span>
       </div>
     </div>
-    <button id="sidebarToggle" class="sidebar-toggle" type="button" aria-label="พับเมนูด้านข้าง" title="พับ/กางเมนู">‹</button>
   </div>
 
   <div class="topbar-actions">
-    <div id="driveStatus" class="drive-status disconnected">
-      <span class="dot"></span>
-      <span id="driveStatusText">Drive: ไม่ได้เชื่อมต่อ</span>
-    </div>
-    <button id="connectDriveBtn" class="btn btn-accent">เชื่อมต่อ Google Drive</button>
-    <button id="viewListBtn" class="btn btn-ghost">รายการเทรด</button>
-    <button id="viewNewBtn" class="btn btn-ghost">+ เทรดใหม่</button>
+    <button id="viewListBtn" class="btn btn-ghost side-menu-item"><span class="menu-icon">☷</span><span class="menu-label">รายการเทรด</span></button>
+    <button id="viewNewBtn" class="btn btn-ghost side-menu-item"><span class="menu-icon">＋</span><span class="menu-label">เทรดใหม่</span></button>
+    <button id="connectDriveBtn" class="btn btn-ghost side-menu-item drive-connect-btn disconnected"><span class="dot"></span><span id="driveStatusText" class="menu-label">เชื่อมต่อ Google Drive</span></button>
   </div>
 </aside>
 
@@ -326,6 +321,6 @@
 
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="config.js"></script>
-<script src="app.js?v=20260821-07"></script>
+<script src="app.js?v=20260821-08"></script>
 </body>
 </html>
