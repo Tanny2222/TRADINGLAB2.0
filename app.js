@@ -243,7 +243,7 @@ function loadCustomOptions(){
   return Object.fromEntries(Object.entries(DEFAULT_OPTIONS).map(([key, defaults]) => {
     const values = Array.isArray(saved[key]) ? saved[key] : defaults;
     const cleaned = [...new Set(values.map(value => String(value).trim()).filter(Boolean))];
-    return [key, cleaned.sort((a,b) => a.localeCompare(b, undefined, {sensitivity:"base"}))];
+    return [key, cleaned];
   }));
 }
 
@@ -292,7 +292,7 @@ function populateTimeframeDropdown(){
   const available = [...customOptions.timeframes];
   selected.forEach(value => { if(!available.includes(value)) available.push(value); });
   container.innerHTML = "";
-  available.sort((a,b) => a.localeCompare(b, undefined, {sensitivity:"base"})).forEach(value => {
+  available.forEach(value => {
     const label = document.createElement("label");
     label.className = "multi-dropdown-option";
     const checkbox = document.createElement("input");
@@ -344,6 +344,20 @@ function renderSettings(){
       name.textContent = value;
       const actions = document.createElement("div");
       actions.className = "settings-item-actions";
+      const moveUp = document.createElement("button");
+      moveUp.type = "button";
+      moveUp.className = "btn btn-ghost tiny order-btn";
+      moveUp.textContent = "↑";
+      moveUp.title = "เลื่อนขึ้น";
+      moveUp.disabled = index === 0;
+      moveUp.onclick = () => moveSettingOption(section.key, index, -1);
+      const moveDown = document.createElement("button");
+      moveDown.type = "button";
+      moveDown.className = "btn btn-ghost tiny order-btn";
+      moveDown.textContent = "↓";
+      moveDown.title = "เลื่อนลง";
+      moveDown.disabled = index === customOptions[section.key].length - 1;
+      moveDown.onclick = () => moveSettingOption(section.key, index, 1);
       const edit = document.createElement("button");
       edit.type = "button";
       edit.className = "btn btn-ghost tiny";
@@ -354,7 +368,7 @@ function renderSettings(){
       remove.className = "btn btn-danger tiny";
       remove.textContent = "ลบ";
       remove.onclick = () => deleteSettingOption(section.key, index);
-      actions.append(edit, remove);
+      actions.append(moveUp, moveDown, edit, remove);
       row.append(name, actions);
       items.appendChild(row);
     });
@@ -370,7 +384,6 @@ function addSettingOption(key, rawValue){
     return;
   }
   customOptions[key].push(value);
-  customOptions[key].sort((a,b) => a.localeCompare(b, undefined, {sensitivity:"base"}));
   refreshCustomOptionsUI();
 }
 
@@ -383,7 +396,13 @@ function editSettingOption(key, index){
     return;
   }
   customOptions[key][index] = value;
-  customOptions[key].sort((a,b) => a.localeCompare(b, undefined, {sensitivity:"base"}));
+  refreshCustomOptionsUI();
+}
+
+function moveSettingOption(key, index, direction){
+  const nextIndex = index + direction;
+  if(nextIndex < 0 || nextIndex >= customOptions[key].length) return;
+  [customOptions[key][index], customOptions[key][nextIndex]] = [customOptions[key][nextIndex], customOptions[key][index]];
   refreshCustomOptionsUI();
 }
 
