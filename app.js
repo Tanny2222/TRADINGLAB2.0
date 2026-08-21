@@ -15,7 +15,6 @@ const RATING_KEYS = [
   {key:"ruleFollow", label:"ตามระบบ (Rule Follow)"},
   {key:"emotionalControl", label:"Emotional Control"},
 ];
-const IMG_SLOTS = ["before_htf","before_entry","before_detail","before_extra_1","after_result","after_exit","after_detail"];
 const SIDEBAR_STATE_KEY = "tj_sidebar_collapsed";
 
 // ---------- state ----------
@@ -64,7 +63,7 @@ function blankTrade(){
     ratings: {}, // rating key -> 0-5
     tags: [],
     images: {}, // slot -> {driveId, name, thumbnailLink, webViewLink, localDataUrl}
-    beforeSlotCount: 4,
+    beforeSlotCount: 1,
   };
 }
 
@@ -323,8 +322,9 @@ function loadFormFromCurrent(){
 function bindImageSlots(){
   document.querySelectorAll("[data-slot]").forEach(bindImageSlotElement);
   document.getElementById("addBeforeImageBtn").onclick = () => {
-    const nextNumber = Math.max(4, current.beforeSlotCount || 4) + 1;
-    const slot = `before_extra_${nextNumber - 3}`;
+    const nextNumber = Math.min(4, Math.max(1, current.beforeSlotCount || 1) + 1);
+    if(nextNumber <= (current.beforeSlotCount || 1)) return;
+    const slot = `before_chart_${nextNumber}`;
     openAnnotateModal(slot, false, slot);
   };
 }
@@ -335,8 +335,8 @@ function bindImageSlotElement(slotEl){
 }
 function createBeforeImageSlot(number){
   const gallery = document.getElementById("beforeImageGallery");
-  if(!gallery || number <= 4) return;
-  const slot = `before_extra_${number - 3}`;
+  if(!gallery || number <= 1 || number > 4) return;
+  const slot = `before_chart_${number}`;
   if(gallery.querySelector(`[data-slot="${slot}"]`)) return;
   const slotEl = document.createElement("div");
   slotEl.className = "imgslot before-dynamic";
@@ -348,13 +348,24 @@ function createBeforeImageSlot(number){
 }
 function syncBeforeImageSlots(){
   document.querySelectorAll(".before-dynamic").forEach(el => el.remove());
+  migrateLegacyBeforeImages();
   const highestImageNumber = Object.keys(current.images || {}).reduce((highest, key) => {
-    const match = key.match(/^before_extra_(\d+)$/);
-    return match ? Math.max(highest, Number(match[1]) + 3) : highest;
-  }, 4);
-  const count = Math.max(4, highestImageNumber);
+    const match = key.match(/^before_chart_([1-4])$/);
+    return match ? Math.max(highest, Number(match[1])) : highest;
+  }, 1);
+  const count = Math.min(4, Math.max(1, highestImageNumber));
   current.beforeSlotCount = count;
-  for(let number = 5; number <= count; number++) createBeforeImageSlot(number);
+  for(let number = 2; number <= count; number++) createBeforeImageSlot(number);
+  const addButton = document.getElementById("addBeforeImageBtn");
+  addButton.disabled = count >= 4;
+  addButton.textContent = count >= 4 ? "เพิ่มรูปครบ 4 รูปแล้ว" : "＋ Add Image";
+}
+function migrateLegacyBeforeImages(){
+  if(Object.keys(current.images || {}).some(key => /^before_chart_[1-4]$/.test(key))) return;
+  const legacyKeys = ["before_htf", "before_entry", "before_detail", "before_extra_1", "before_extra_2", "before_extra_3"];
+  const legacyImages = legacyKeys.map(key => current.images[key]).filter(Boolean).slice(0, 4);
+  legacyImages.forEach((image, index) => { current.images[`before_chart_${index + 1}`] = image; });
+  legacyKeys.forEach(key => { delete current.images[key]; });
 }
 function bindNoteHandButtons(){
   document.querySelectorAll(".hand-btn").forEach(btn => {
@@ -375,7 +386,8 @@ function renderImageSlot(slot){
   if(!wrap) return;
   slotEl.querySelector(".image-delete-btn")?.remove();
   const img = current.images[slot];
-  const isAdditional = Number(slot.match(/^before_extra_(\d+)$/)?.[1] || 0) >= 2;
+  const beforeNumber = Number(slot.match(/^before_chart_([1-4])$/)?.[1] || 0);
+  const isAdditional = beforeNumber >= 2;
   if(img && (img.thumbnailLink || img.localDataUrl)){
     wrap.innerHTML = `<img src="${img.thumbnailLink || img.localDataUrl}" alt="">`;
   } else {
@@ -398,25 +410,47 @@ function renderImageSlot(slot){
   }
 }
 
-function deleteImageFromSlot(slot){
-  const isAdditional = Number(slot.match(/^before_extra_(\d+)$/)?.[1] || 0) >= 2;
+async function deleteImageFromSlot(slot){
+  const isAdditional = Number(slot.match(/^before_chart_([1-4])$/)?.[1] || 0) >= 2;
   if(!current.images[slot] && !isAdditional) return false;
   const message = isAdditional
-    ? "ลบกล่อง Additional Chart และรูปนี้ออกจากเทรด? (ไฟล์ใน Google Drive จะไม่ถูกลบ)"
-    : "ลบรูปนี้ออกจากเทรด? (ไฟล์ใน Google Drive จะไม่ถูกลบ)";
+    ? "ลบกล่อง Additional Chart และรูปนี้ รวมถึงไฟล์ใน Google Drive?"
+    : "ลบรูปนี้ออกจากเทรด รวมถึงไฟล์ใน Google Drive?";
   if(!confirm(message)) return false;
+  const image = current.images[slot];
+  if(image?.driveId){
+    if(!accessToken){
+      alert("กรุณาเชื่อมต่อ Google Drive ก่อนลบรูป เพื่อให้ระบบลบไฟล์จาก Drive ได้ด้วย");
+      requestDriveAccess();
+      return false;
+    }
+    let response;
+    try{
+      response = await fetch(`https://www.googleapis.com/drive/v3/files/${image.driveId}`, {
+        method:"DELETE",
+        headers:{Authorization:`Bearer ${accessToken}`}
+      });
+    }catch(error){
+      alert("เชื่อมต่อ Google Drive ไม่สำเร็จ กรุณาลองใหม่");
+      return false;
+    }
+    if(!response.ok && response.status !== 404){
+      alert("ลบไฟล์จาก Google Drive ไม่สำเร็จ กรุณาต่ออายุสิทธิ์แล้วลองใหม่");
+      return false;
+    }
+  }
   delete current.images[slot];
 
   if(isAdditional){
     const remaining = Object.entries(current.images)
-      .filter(([key]) => Number(key.match(/^before_extra_(\d+)$/)?.[1] || 0) >= 2)
+      .filter(([key]) => Number(key.match(/^before_chart_([1-4])$/)?.[1] || 0) >= 2)
       .sort(([a], [b]) => Number(a.split("_").pop()) - Number(b.split("_").pop()))
       .map(([, image]) => image);
     Object.keys(current.images).forEach(key => {
-      if(Number(key.match(/^before_extra_(\d+)$/)?.[1] || 0) >= 2) delete current.images[key];
+      if(Number(key.match(/^before_chart_([1-4])$/)?.[1] || 0) >= 2) delete current.images[key];
     });
-    remaining.forEach((image, index) => { current.images[`before_extra_${index + 2}`] = image; });
-    current.beforeSlotCount = 4 + remaining.length;
+    remaining.forEach((image, index) => { current.images[`before_chart_${index + 2}`] = image; });
+    current.beforeSlotCount = 1 + remaining.length;
     renderAllImageSlots();
   } else {
     renderImageSlot(slot);
@@ -472,15 +506,10 @@ function closeAnnotateModal(){
 
 function bindModal(){
   document.getElementById("annotateClose").onclick = closeAnnotateModal;
-  document.getElementById("removeCurrentImageBtn").onclick = () => {
-    if(activeSlotKey && deleteImageFromSlot(activeSlotKey)) closeAnnotateModal();
+  document.getElementById("removeCurrentImageBtn").onclick = async () => {
+    if(activeSlotKey && await deleteImageFromSlot(activeSlotKey)) closeAnnotateModal();
   };
-  document.querySelectorAll(".pen-color").forEach(button => {
-    button.onclick = () => {
-      selectedPenColor = button.dataset.color;
-      document.querySelectorAll(".pen-color").forEach(item => item.classList.toggle("active", item === button));
-    };
-  });
+  document.getElementById("penColorSelect").onchange = event => { selectedPenColor = event.target.value; };
   document.getElementById("fullSizePreviewBtn").onclick = openFullSizePreview;
   document.getElementById("closeFullSizePreview").onclick = closeFullSizePreview;
   document.getElementById("fullSizePreview").addEventListener("click", event => {
@@ -718,11 +747,11 @@ async function handleUpload(){
       current.images["note:"+activeSlotKey] = record;
     } else {
       current.images[activeSlotKey] = record;
-      const extraMatch = activeSlotKey.match(/^before_extra_(\d+)$/);
-      if(extraMatch){
-        const number = Number(extraMatch[1]) + 3;
-        current.beforeSlotCount = Math.max(4, current.beforeSlotCount || 4, number);
-        createBeforeImageSlot(number);
+      const beforeMatch = activeSlotKey.match(/^before_chart_([1-4])$/);
+      if(beforeMatch){
+        const number = Number(beforeMatch[1]);
+        current.beforeSlotCount = Math.min(4, Math.max(1, current.beforeSlotCount || 1, number));
+        syncBeforeImageSlots();
       }
       renderImageSlot(activeSlotKey);
     }
