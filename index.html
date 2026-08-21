@@ -162,28 +162,55 @@
       </div>
     </div>
 
-    <!-- ============ ROW: BEFORE TRADE (full width) ============ -->
-    <div class="panel full-row">
-      <div class="panel-head head-before"><span class="ico">◎</span> BEFORE TRADE (Setup Analysis)</div>
-      <div class="panel-body">
-        <div class="imgrow3">
-          <div class="imgslot" data-slot="before_htf">
+    <!-- ============ ROW: BEFORE TRADE | AFTER TRADE (side by side) ============ -->
+    <div class="grid-2top">
+      <div class="panel">
+        <div class="panel-head head-before"><span class="ico">◎</span> BEFORE TRADE (Setup Analysis)</div>
+        <div class="panel-body">
+          <div class="imgslot-full" data-slot="before_htf">
             <div class="imgslot-label">1. Higher Timeframe</div>
             <div class="imgslot-canvas-wrap"></div>
           </div>
-          <div class="imgslot" data-slot="before_entry">
-            <div class="imgslot-label">2. Entry Timeframe</div>
-            <div class="imgslot-canvas-wrap"></div>
+          <div class="row2">
+            <div class="imgslot" data-slot="before_entry">
+              <div class="imgslot-label">2. Entry Timeframe</div>
+              <div class="imgslot-canvas-wrap"></div>
+            </div>
+            <div class="imgslot" data-slot="before_detail">
+              <div class="imgslot-label">3. Detail / Indicator</div>
+              <div class="imgslot-canvas-wrap"></div>
+            </div>
           </div>
-          <div class="imgslot" data-slot="before_detail">
-            <div class="imgslot-label">3. Detail / Indicator</div>
-            <div class="imgslot-canvas-wrap"></div>
+          <div class="field notefield">
+            <label>✎ Notes Before Entry</label>
+            <textarea id="f_notesBefore" rows="2"></textarea>
+            <button type="button" class="btn btn-ghost tiny hand-btn" data-target="f_notesBefore">✏ วาดโน้ตมือ</button>
           </div>
         </div>
-        <div class="field notefield">
-          <label>✎ Notes Before Entry</label>
-          <textarea id="f_notesBefore" rows="2"></textarea>
-          <button type="button" class="btn btn-ghost tiny hand-btn" data-target="f_notesBefore">✏ วาดโน้ตมือ</button>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head head-after"><span class="ico">⚑</span> AFTER TRADE (Result & Review)</div>
+        <div class="panel-body">
+          <div class="imgslot-full" data-slot="after_result">
+            <div class="imgslot-label">1. Result Overview</div>
+            <div class="imgslot-canvas-wrap"></div>
+          </div>
+          <div class="row2">
+            <div class="imgslot" data-slot="after_exit">
+              <div class="imgslot-label">2. Exit Timeframe</div>
+              <div class="imgslot-canvas-wrap"></div>
+            </div>
+            <div class="imgslot" data-slot="after_detail">
+              <div class="imgslot-label">3. Detail / Indicator</div>
+              <div class="imgslot-canvas-wrap"></div>
+            </div>
+          </div>
+          <div class="field notefield">
+            <label>✎ Notes After Trade</label>
+            <textarea id="f_notesAfter" rows="2"></textarea>
+            <button type="button" class="btn btn-ghost tiny hand-btn" data-target="f_notesAfter">✏ วาดโน้ตมือ</button>
+          </div>
         </div>
       </div>
     </div>
@@ -252,32 +279,6 @@
             <label>💡 Quote / Reminder</label>
             <textarea id="f_quote" rows="2"></textarea>
           </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ============ ROW: AFTER TRADE (full width, bottom) ============ -->
-    <div class="panel full-row after-row">
-      <div class="panel-head head-after"><span class="ico">⚑</span> AFTER TRADE (Result & Review)</div>
-      <div class="panel-body">
-        <div class="imgrow3">
-          <div class="imgslot" data-slot="after_result">
-            <div class="imgslot-label">1. Result Overview</div>
-            <div class="imgslot-canvas-wrap"></div>
-          </div>
-          <div class="imgslot" data-slot="after_exit">
-            <div class="imgslot-label">2. Exit Timeframe</div>
-            <div class="imgslot-canvas-wrap"></div>
-          </div>
-          <div class="imgslot" data-slot="after_detail">
-            <div class="imgslot-label">3. Detail / Indicator</div>
-            <div class="imgslot-canvas-wrap"></div>
-          </div>
-        </div>
-        <div class="field notefield">
-          <label>✎ Notes After Trade</label>
-          <textarea id="f_notesAfter" rows="2"></textarea>
-          <button type="button" class="btn btn-ghost tiny hand-btn" data-target="f_notesAfter">✏ วาดโน้ตมือ</button>
         </div>
       </div>
     </div>

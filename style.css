@@ -142,9 +142,12 @@ button{font-family:var(--font-body);cursor:pointer;}
   background:var(--panel);border:1px solid var(--border-soft);
   border-radius:var(--radius);padding:16px;margin-bottom:16px;
 }
-.field{min-width:110px;}
+.field{min-width:110px;margin-bottom:12px;}
 .field.grow{flex:1;min-width:180px;}
-.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.field:last-child{margin-bottom:0;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.row2:last-child{margin-bottom:0;}
+.row2 .field{margin-bottom:0;}
 
 .grid-2top{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;margin-bottom:16px;}
 .grid-4{display:grid;grid-template-columns:2fr 1fr 1fr;gap:16px;margin-top:16px;align-items:start;}
@@ -153,14 +156,14 @@ button{font-family:var(--font-body);cursor:pointer;}
 .full-row{width:100%;margin-bottom:16px;}
 .full-row.after-row{margin-top:16px;margin-bottom:0;}
 
-/* fields laid out in a responsive multi-column grid inside a panel, to use full width */
+/* fields laid out in a stable 2-column grid inside a panel, to use full width without overlap */
 .cols-in-panel{
   display:grid;
-  grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));
-  gap:10px 14px;
-  align-items:end;
+  grid-template-columns:1fr 1fr;
+  gap:14px 16px;
+  align-items:start;
 }
-.cols-in-panel .field{min-width:0;}
+.cols-in-panel .field{min-width:0;margin-bottom:0;}
 .cols-in-panel .span-all{grid-column:1 / -1;}
 
 /* three images side-by-side using full row width */
@@ -175,7 +178,7 @@ button{font-family:var(--font-body);cursor:pointer;}
   .imgrow3{grid-template-columns:1fr;}
 }
 @media (max-width:640px){
-  .cols-in-panel{grid-template-columns:1fr 1fr;}
+  .cols-in-panel{grid-template-columns:1fr;}
 }
 
 /* ============ PANELS ============ */
