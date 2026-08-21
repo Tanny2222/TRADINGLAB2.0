@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260821-01">
+<link rel="stylesheet" href="style.css?v=20260821-02">
 </head>
 <body>
 
@@ -317,12 +317,19 @@
       <button id="pasteBtn" class="btn btn-ghost small">📋 วาง (Paste)</button>
       <span class="sep"></span>
       <label class="tool-label">สี</label>
-      <input type="color" id="penColor" value="#ff4d4d">
+      <div id="penColorPalette" class="pen-color-palette" aria-label="เลือกสีปากกา">
+        <button type="button" class="pen-color" data-color="#ffffff" aria-label="สีขาว" title="สีขาว"></button>
+        <button type="button" class="pen-color" data-color="#000000" aria-label="สีดำ" title="สีดำ"></button>
+        <button type="button" class="pen-color active" data-color="#ff4d4d" aria-label="สีแดง" title="สีแดง"></button>
+        <button type="button" class="pen-color" data-color="#35c48c" aria-label="สีเขียว" title="สีเขียว"></button>
+        <button type="button" class="pen-color" data-color="#4c8dff" aria-label="สีน้ำเงิน" title="สีน้ำเงิน"></button>
+      </div>
       <label class="tool-label">ขนาด</label>
       <input type="range" id="penSize" min="1" max="20" value="3">
       <button id="undoBtn" class="btn btn-ghost small">↶ Undo</button>
       <button id="clearBtn" class="btn btn-ghost small">🗑 ล้าง</button>
       <button id="removeCurrentImageBtn" class="btn btn-danger small" style="display:none">✕ ลบรูป</button>
+      <button id="fullSizePreviewBtn" class="btn btn-ghost small">⛶ ดูรูปเต็มขนาด</button>
       <span class="sep"></span>
       <button id="uploadDriveBtn" class="btn btn-accent small">☁ อัปโหลดขึ้น Drive</button>
     </div>
@@ -334,8 +341,13 @@
   </div>
 </div>
 
+<div id="fullSizePreview" class="fullscreen-preview" aria-hidden="true">
+  <button id="closeFullSizePreview" type="button" class="fullscreen-preview-close">✕ ปิด</button>
+  <img id="fullSizePreviewImage" alt="รูปตัวอย่างเต็มขนาด">
+</div>
+
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="config.js"></script>
-<script src="app.js?v=20260821-01"></script>
+<script src="app.js?v=20260821-02"></script>
 </body>
 </html>

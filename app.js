@@ -29,6 +29,7 @@ let baseImage = null; // HTMLImageElement currently loaded on canvas
 let strokes = [];      // undo stack of stroke arrays
 let currentStroke = null;
 let drawing = false;
+let selectedPenColor = "#ff4d4d";
 let accessToken = null;
 let tokenClient = null;
 
@@ -383,8 +384,12 @@ function renderImageSlot(slot){
   if(img || isAdditional){
     const deleteButton = document.createElement("button");
     deleteButton.type = "button";
-    deleteButton.className = "image-delete-btn";
-    deleteButton.textContent = isAdditional ? "✕ ลบกล่องและรูป" : "✕ ลบรูป";
+    deleteButton.className = isAdditional ? "image-delete-btn additional-delete-btn" : "image-delete-btn";
+    deleteButton.textContent = isAdditional ? "✕" : "✕ ลบรูป";
+    if(isAdditional){
+      deleteButton.title = "ลบกล่องและรูป";
+      deleteButton.setAttribute("aria-label", "ลบกล่องและรูป");
+    }
     deleteButton.addEventListener("click", event => {
       event.stopPropagation();
       deleteImageFromSlot(slot);
@@ -470,6 +475,17 @@ function bindModal(){
   document.getElementById("removeCurrentImageBtn").onclick = () => {
     if(activeSlotKey && deleteImageFromSlot(activeSlotKey)) closeAnnotateModal();
   };
+  document.querySelectorAll(".pen-color").forEach(button => {
+    button.onclick = () => {
+      selectedPenColor = button.dataset.color;
+      document.querySelectorAll(".pen-color").forEach(item => item.classList.toggle("active", item === button));
+    };
+  });
+  document.getElementById("fullSizePreviewBtn").onclick = openFullSizePreview;
+  document.getElementById("closeFullSizePreview").onclick = closeFullSizePreview;
+  document.getElementById("fullSizePreview").addEventListener("click", event => {
+    if(event.target.id === "fullSizePreview") closeFullSizePreview();
+  });
   document.getElementById("fileInput").addEventListener("change", (e) => {
     const file = e.target.files[0];
     if(file) loadImageFile(file);
@@ -512,6 +528,23 @@ function bindModal(){
   c.addEventListener("pointerleave", endStroke);
 }
 
+function openFullSizePreview(){
+  if(!canvasHasContent()){
+    setStatus("ยังไม่มีรูปสำหรับดูแบบเต็มขนาด");
+    return;
+  }
+  document.getElementById("fullSizePreviewImage").src = canvas().toDataURL("image/png");
+  const preview = document.getElementById("fullSizePreview");
+  preview.classList.add("active");
+  preview.setAttribute("aria-hidden", "false");
+}
+
+function closeFullSizePreview(){
+  const preview = document.getElementById("fullSizePreview");
+  preview.classList.remove("active");
+  preview.setAttribute("aria-hidden", "true");
+}
+
 function loadImageFile(file){ loadImageBlob(file); }
 function loadImageBlob(blob){
   const reader = new FileReader();
@@ -541,7 +574,7 @@ function startStroke(e){
   e.preventDefault();
   drawing = true;
   document.getElementById("canvasEmpty").style.display = "none";
-  currentStroke = { color: document.getElementById("penColor").value, size: Number(document.getElementById("penSize").value), points:[getPos(e)] };
+  currentStroke = { color: selectedPenColor, size: Number(document.getElementById("penSize").value), points:[getPos(e)] };
   canvas().setPointerCapture(e.pointerId);
 }
 function moveStroke(e){
