@@ -159,10 +159,10 @@ button{font-family:var(--font-body);cursor:pointer;}
 
 .sheet-header{
   display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;
-  background:var(--panel);border:1px solid var(--border-soft);
+  background:linear-gradient(105deg,#172332,#111A25);border:1px solid rgba(76,141,255,.5);
   border-radius:var(--radius);padding:16px;margin-bottom:16px;
   position:sticky;top:0;z-index:14;
-  box-shadow:0 10px 26px rgba(0,0,0,.24);
+  box-shadow:0 12px 30px rgba(0,0,0,.42),0 0 0 1px rgba(76,141,255,.08);
 }
 body.has-ticker .sheet-header{top:34px;}
 .sheet-header > .field{margin-bottom:0;}
@@ -180,7 +180,9 @@ body.has-ticker .sheet-header{top:34px;}
 .trade-context-grid{align-items:stretch;}
 .trade-context-grid > .panel{height:100%;display:flex;flex-direction:column;}
 .trade-context-grid > .panel > .panel-body{flex:1;}
-.grid-4{display:grid;grid-template-columns:2fr 1fr 1fr;gap:16px;margin-top:16px;align-items:start;}
+.grid-4{display:grid;grid-template-columns:2fr 1fr 1fr;gap:16px;margin-top:16px;align-items:stretch;}
+.grid-4 > .panel{height:100%;display:flex;flex-direction:column;}
+.grid-4 > .panel > .panel-body{flex:1;}
 .col{display:flex;flex-direction:column;gap:16px;}
 .span2{grid-column:span 1;}
 .full-row{width:100%;margin-bottom:16px;}
@@ -325,7 +327,8 @@ body.has-ticker .sheet-header{top:34px;}
 
 /* ============ STATS / REVIEW ============ */
 .stats-col{display:flex;flex-direction:column;}
-.stats-review-col{gap:16px;}
+.stats-panel .stats-col,.review-panel .panel-body{height:100%;}
+.lesson-full-panel{width:100%;margin-top:16px;}
 .stats-notes{display:flex;flex:1;min-height:220px;flex-direction:column;margin-top:8px;}
 .stats-notes textarea{flex:1;min-height:180px;resize:vertical;}
 .stats-title{font-size:10.5px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;font-weight:700;margin-bottom:8px;}
