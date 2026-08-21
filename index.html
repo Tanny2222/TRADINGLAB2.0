@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260821-06">
+<link rel="stylesheet" href="style.css?v=20260821-07">
 </head>
 <body>
 
@@ -141,6 +141,7 @@
             <label>Setup Reason / Why This Trade / How Market Structure?</label>
             <textarea id="f_setupReason" class="long-text" rows="4"></textarea>
             <div class="smart-list-hint">Smart List: พิมพ์ “1. หัวข้อ” แล้ว Enter หรือพิมพ์ “-” แล้ว Space</div>
+            <button type="button" class="btn btn-ghost tiny hand-btn" data-target="f_setupReason">✏ วาดโน้ตมือ</button>
           </div>
           <div class="field"><label>Key Level / Zone</label><input type="text" id="f_keyLevel"></div>
           <div class="field">
@@ -155,6 +156,7 @@
             <label>Analysis Before Entry (ทำไมถึงเข้าเทรดนี้?)</label>
             <textarea id="f_analysisBefore" class="long-text" rows="4"></textarea>
             <div class="smart-list-hint">Smart List: พิมพ์ “1. หัวข้อ” แล้ว Enter หรือพิมพ์ “-” แล้ว Space</div>
+            <button type="button" class="btn btn-ghost tiny hand-btn" data-target="f_analysisBefore">✏ วาดโน้ตมือ</button>
           </div>
         </div>
       </div>
@@ -172,11 +174,6 @@
             </div>
           </div>
           <button id="addBeforeImageBtn" type="button" class="btn btn-ghost small add-image-btn">＋ Add Image</button>
-          <div class="field notefield">
-            <label>✎ Notes Before Entry</label>
-            <textarea id="f_notesBefore" rows="2"></textarea>
-            <button type="button" class="btn btn-ghost tiny hand-btn" data-target="f_notesBefore">✏ วาดโน้ตมือ</button>
-          </div>
         </div>
       </div>
 
@@ -190,11 +187,6 @@
             </div>
           </div>
           <button id="addAfterImageBtn" type="button" class="btn btn-ghost small add-image-btn">＋ Add Image</button>
-          <div class="field notefield">
-            <label>✎ Notes After Trade</label>
-            <textarea id="f_notesAfter" rows="2"></textarea>
-            <button type="button" class="btn btn-ghost tiny hand-btn" data-target="f_notesAfter">✏ วาดโน้ตมือ</button>
-          </div>
         </div>
       </div>
     </div>
@@ -334,6 +326,6 @@
 
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="config.js"></script>
-<script src="app.js?v=20260821-06"></script>
+<script src="app.js?v=20260821-07"></script>
 </body>
 </html>

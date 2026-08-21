@@ -323,8 +323,10 @@ button{font-family:var(--font-body);cursor:pointer;}
 .trade-image-gallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:10px;}
 .trade-image-gallery.single-slot{grid-template-columns:1fr;}
 .trade-image-gallery .imgslot{margin-bottom:0;}
-.trade-image-gallery .imgslot-canvas-wrap{min-height:130px;}
-.trade-image-gallery .imgslot-canvas-wrap img{max-height:180px;}
+.trade-image-gallery .imgslot-canvas-wrap{min-height:230px;}
+.trade-image-gallery .imgslot-canvas-wrap img{max-height:310px;}
+.trade-image-gallery.single-slot .imgslot-canvas-wrap{min-height:340px;}
+.trade-image-gallery.single-slot .imgslot-canvas-wrap img{max-height:430px;}
 .add-image-btn{width:100%;margin-bottom:12px;border-style:dashed;}
 
 .notefield{margin-top:6px;position:relative;}

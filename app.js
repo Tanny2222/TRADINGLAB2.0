@@ -518,8 +518,8 @@ function openAnnotateModal(key, isNote, titleKey){
   currentStroke = null;
   baseImage = null;
 
-  const existing = isNote ? null : current.images[key];
-  document.getElementById("removeCurrentImageBtn").style.display = existing ? "inline-block" : "none";
+  const existing = isNote ? current.images["note:"+key] : current.images[key];
+  document.getElementById("removeCurrentImageBtn").style.display = existing && !isNote ? "inline-block" : "none";
   const c = canvas();
   const stage = document.querySelector(".canvas-stage");
   const maxW = Math.min(stage.clientWidth - 20, 640);
