@@ -13,12 +13,15 @@
 
 <!-- ===================== SIDE MENU ===================== -->
 <aside class="sidebar">
-  <div class="brand">
-    <div class="brand-mark">TJ</div>
-    <div class="brand-text">
-      <h1>TRADING JOURNAL</h1>
-      <span>Plan · Execute · Review · Improve</span>
+  <div class="sidebar-head">
+    <div class="brand">
+      <div class="brand-mark">TJ</div>
+      <div class="brand-text">
+        <h1>TRADING JOURNAL</h1>
+        <span>Plan · Execute · Review · Improve</span>
+      </div>
     </div>
+    <button id="sidebarToggle" class="sidebar-toggle" type="button" aria-label="พับเมนูด้านข้าง" title="พับ/กางเมนู">‹</button>
   </div>
 
   <div class="topbar-actions">
@@ -54,13 +57,13 @@
 
     <!-- HEADER ROW: date / trade# / result -->
     <div class="sheet-header">
+      <div class="field trade-number-field">
+        <label>TRADE #</label>
+        <input type="text" id="f_tradeNo" class="mono" readonly aria-readonly="true">
+      </div>
       <div class="field">
         <label>DATE</label>
         <input type="date" id="f_date">
-      </div>
-      <div class="field">
-        <label>TRADE #</label>
-        <input type="text" id="f_tradeNo" placeholder="0001">
       </div>
       <div class="field grow">
         <label>ASSET / PAIR</label>
@@ -113,7 +116,7 @@
       <div class="panel">
         <div class="panel-head head-info"><span class="ico">▤</span> MARKET CONTEXT & ANALYSIS</div>
         <div class="panel-body cols-in-panel">
-          <div class="field span-all">
+          <div class="field">
             <label>Market Context (Higher TF)</label>
             <div class="pill-toggle" data-field="marketContext">
               <button type="button" data-val="Bullish" class="pill pill-win">Bullish</button>
@@ -128,12 +131,19 @@
               <button type="button" data-val="No" class="pill">No</button>
             </div>
           </div>
-          <div class="field">
-            <label>EMA50 Touch in Lookback</label>
-            <div class="pill-toggle" data-field="ema50Touch">
-              <button type="button" data-val="No Touch" class="pill">No Touch</button>
-              <button type="button" data-val="Touch" class="pill">Touch</button>
-            </div>
+          <div class="field span-all">
+            <label for="f_setup">Setup</label>
+            <select id="f_setup">
+              <option value="">เลือก Setup</option>
+              <option value="A Setup">A Setup</option>
+              <option value="B Setup">B Setup</option>
+              <option value="Breakout">Breakout</option>
+              <option value="C Setup">C Setup</option>
+              <option value="Counter Trend">Counter Trend</option>
+              <option value="Follow Trend">Follow Trend</option>
+              <option value="Pullback">Pullback</option>
+              <option value="Reversal">Reversal</option>
+            </select>
           </div>
           <div class="field span-all">
             <label>Setup Reason / Why This Trade?</label>
@@ -148,9 +158,6 @@
               <button type="button" data-val="Other" class="pill">Other</button>
             </div>
           </div>
-          <div class="field"><label>Candle After Touch (count)</label><input type="text" class="mono" id="f_candleAfterTouch"></div>
-          <div class="field"><label>Pullback Size (จาก EMA)</label><input type="text" class="mono" id="f_pullbackSize"></div>
-          <div class="field"><label>Distance From EMA to Entry</label><input type="text" class="mono" id="f_distEmaEntry"></div>
           <div class="field"><label>Risk (SL)</label><input type="text" class="mono" id="f_riskSl"></div>
           <div class="field"><label>Reward (TP)</label><input type="text" class="mono" id="f_rewardTp"></div>
           <div class="field"><label>RR Plan</label><input type="text" class="mono" id="f_rrPlan"></div>

@@ -16,6 +16,7 @@ const RATING_KEYS = [
   {key:"emotionalControl", label:"Emotional Control"},
 ];
 const IMG_SLOTS = ["before_htf","before_entry","before_detail","after_result","after_exit","after_detail"];
+const SIDEBAR_STATE_KEY = "tj_sidebar_collapsed";
 
 // ---------- state ----------
 let trades = loadTrades();
@@ -39,6 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
   buildTagBlock();
   bindPillToggles();
   bindTopbar();
+  bindSidebarToggle();
   bindImageSlots();
   bindNoteHandButtons();
   bindModal();
@@ -53,12 +55,20 @@ function blankTrade(){
   return {
     id: null,
     createdAt: Date.now(),
-    fields: {}, // all text inputs by id
+    fields: {f_tradeNo: String(nextTradeNumber())}, // all text inputs by id
     toggles: {}, // pill-toggle fields
     ratings: {}, // rating key -> 0-5
     tags: [],
     images: {}, // slot -> {driveId, name, thumbnailLink, webViewLink, localDataUrl}
   };
+}
+
+function nextTradeNumber(){
+  const highest = trades.reduce((max, trade) => {
+    const value = Number.parseInt(trade.fields?.f_tradeNo, 10);
+    return Number.isFinite(value) ? Math.max(max, value) : max;
+  }, 0);
+  return highest + 1;
 }
 
 // ============================================================
@@ -74,6 +84,24 @@ function bindTopbar(){
   document.getElementById("viewListBtn").onclick = () => showView("list");
   document.getElementById("viewNewBtn").onclick = () => { current = blankTrade(); loadFormFromCurrent(); showView("form"); };
   document.getElementById("connectDriveBtn").onclick = requestDriveAccess;
+}
+
+function bindSidebarToggle(){
+  const button = document.getElementById("sidebarToggle");
+  const collapsed = localStorage.getItem(SIDEBAR_STATE_KEY) === "true";
+  document.body.classList.toggle("sidebar-collapsed", collapsed);
+  updateSidebarToggleLabel();
+  button.onclick = () => {
+    document.body.classList.toggle("sidebar-collapsed");
+    localStorage.setItem(SIDEBAR_STATE_KEY, document.body.classList.contains("sidebar-collapsed"));
+    updateSidebarToggleLabel();
+  };
+}
+
+function updateSidebarToggleLabel(){
+  const button = document.getElementById("sidebarToggle");
+  const collapsed = document.body.classList.contains("sidebar-collapsed");
+  button.setAttribute("aria-label", collapsed ? "กางเมนูด้านข้าง" : "พับเมนูด้านข้าง");
 }
 
 // ============================================================
@@ -178,7 +206,7 @@ function applyTagState(){
 // TEXT FIELD BINDING (auto-sync inputs <-> current.fields)
 // ============================================================
 function allFieldInputs(){
-  return document.querySelectorAll("#formView input[id^='f_'], #formView textarea[id^='f_']");
+  return document.querySelectorAll("#formView input[id^='f_'], #formView textarea[id^='f_'], #formView select[id^='f_']");
 }
 function bindFieldAutosync(){
   allFieldInputs().forEach(inp => {
@@ -513,6 +541,7 @@ function bindSaveBar(){
   document.getElementById("deleteTradeBtn").onclick = deleteCurrentTrade;
 }
 function saveCurrentTrade(){
+  if(!current.fields.f_tradeNo) current.fields.f_tradeNo = String(nextTradeNumber());
   if(!current.id) current.id = "t_" + Date.now();
   current.updatedAt = Date.now();
   const idx = trades.findIndex(t=>t.id===current.id);
