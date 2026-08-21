@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20260821-17">
+  <link rel="stylesheet" href="style.css?v=20260821-18">
 </head>
 <body>
 
@@ -26,6 +26,7 @@
   <div class="topbar-actions">
     <button id="viewListBtn" class="btn btn-ghost side-menu-item"><span class="menu-icon">☷</span><span class="menu-label">รายการเทรด</span></button>
     <button id="viewNewBtn" class="btn btn-ghost side-menu-item"><span class="menu-icon">＋</span><span class="menu-label">เทรดใหม่</span></button>
+    <button id="viewSettingsBtn" class="btn btn-ghost side-menu-item"><span class="menu-icon">⚙</span><span class="menu-label">Settings</span></button>
     <button id="connectDriveBtn" class="btn btn-ghost side-menu-item drive-connect-btn disconnected"><span class="dot"></span><span id="driveStatusText" class="menu-label">เชื่อมต่อ Google Drive</span></button>
   </div>
 </aside>
@@ -45,6 +46,14 @@
       <button id="exportJsonBtn" class="btn btn-ghost small">Export JSON</button>
     </div>
     <div id="tradeTable" class="trade-table"></div>
+  </section>
+
+  <!-- ===================== SETTINGS VIEW ===================== -->
+  <section id="settingsView" class="view">
+    <div class="settings-header">
+      <div><h2>SETTINGS</h2><p>เพิ่ม แก้ไข หรือลบตัวเลือกที่ใช้ใน Trading Journal</p></div>
+    </div>
+    <div id="settingsGrid" class="settings-grid"></div>
   </section>
 
   <!-- ===================== FORM VIEW ===================== -->
@@ -79,7 +88,7 @@
           <div class="field span-all"><label>ASSET / PAIR</label><input type="text" id="f_asset" placeholder="เช่น XAUUSD, BTCUSD"></div>
           <div class="field"><label>Entry Datetime</label><input type="datetime-local" id="f_entryTime"></div>
           <div class="field"><label>Exit Datetime</label><input type="datetime-local" id="f_exitTime"></div>
-          <div class="field"><label>TIMEFRAME</label><input type="text" id="f_timeframe" placeholder="H1 / H4 / D1"></div>
+          <div class="field"><label>TIMEFRAME (เลือกได้หลายค่า)</label><select id="f_timeframe" multiple size="4" aria-label="เลือก Timeframe ได้หลายค่า"></select><span class="field-hint">กด Ctrl / Cmd ค้างเพื่อเลือกหลายค่า</span></div>
           <div class="field">
             <label>DIRECTION</label>
             <div class="pill-toggle" data-field="direction">
@@ -125,17 +134,7 @@
           </div>
           <div class="field">
             <label for="f_setup">Setup</label>
-            <select id="f_setup">
-              <option value="">เลือก Setup</option>
-              <option value="A Setup">A Setup</option>
-              <option value="B Setup">B Setup</option>
-              <option value="Breakout">Breakout</option>
-              <option value="C Setup">C Setup</option>
-              <option value="Counter Trend">Counter Trend</option>
-              <option value="Follow Trend">Follow Trend</option>
-              <option value="Pullback">Pullback</option>
-              <option value="Reversal">Reversal</option>
-            </select>
+            <select id="f_setup"><option value="">เลือก Setup</option></select>
           </div>
           <div class="field span-all">
             <label>Setup Reason / Why This Trade / How Market Structure?</label>
@@ -143,14 +142,10 @@
             <div class="smart-list-hint">Smart List: พิมพ์ “1. หัวข้อ” แล้ว Enter หรือพิมพ์ “-” แล้ว Space</div>
             <button type="button" class="btn btn-ghost tiny hand-btn" data-target="f_setupReason">✏ วาดโน้ตมือ</button>
           </div>
-          <div class="field"><label>Key Level / Zone</label><input type="text" id="f_keyLevel"></div>
+          <div class="field"><label>Key Level / Zone</label><select id="f_keyLevel"><option value="">เลือก Key Level / Zone</option></select></div>
           <div class="field">
             <label>Confirmation Type</label>
-            <div class="pill-toggle" data-field="confirmationType">
-              <button type="button" data-val="Engulfing" class="pill">Engulfing</button>
-              <button type="button" data-val="Pin Bar" class="pill">Pin Bar</button>
-              <button type="button" data-val="Other" class="pill">Other</button>
-            </div>
+            <select id="f_confirmationType"><option value="">เลือก Confirmation Type</option></select>
           </div>
           <div class="field span-all">
             <label>Analysis Before Entry (ทำไมถึงเข้าเทรดนี้?)</label>
@@ -313,6 +308,6 @@
 
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="config.js"></script>
-<script src="app.js?v=20260821-17"></script>
+<script src="app.js?v=20260821-18"></script>
 </body>
 </html>

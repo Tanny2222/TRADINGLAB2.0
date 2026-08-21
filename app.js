@@ -5,8 +5,22 @@
 
 const STORAGE_KEY = "tj_trades_v1";
 const FOLDER_ID_KEY = "tj_drive_folder_id";
+const SETTINGS_KEY = "tj_custom_options_v1";
 
-const TAGS = ["Trend","Pullback","Breakout","CounterTrend","FollowTrend","A Setup","B Setup","C Setup","Win","Loss","BE","Mistake"];
+const DEFAULT_OPTIONS = {
+  timeframes: ["M1","M5","M15","M30","H1","H4","D1","W1"],
+  setups: ["A Setup","B Setup","Breakout","C Setup","Counter Trend","Follow Trend","Pullback","Reversal"],
+  keyLevels: ["Support","Resistance","Demand Zone","Supply Zone"],
+  confirmationTypes: ["Engulfing","Pin Bar","Other"],
+  tags: ["Trend","Pullback","Breakout","CounterTrend","FollowTrend","A Setup","B Setup","C Setup","Win","Loss","BE","Mistake"]
+};
+const SETTINGS_SECTIONS = [
+  {key:"timeframes", label:"Timeframe", placeholder:"เช่น H1"},
+  {key:"setups", label:"Setup", placeholder:"เช่น Breakout"},
+  {key:"keyLevels", label:"Key Level / Zone", placeholder:"เช่น Daily Support"},
+  {key:"confirmationTypes", label:"Confirmation Type", placeholder:"เช่น Engulfing"},
+  {key:"tags", label:"Lesson & Tag", placeholder:"เช่น Mistake"}
+];
 const RATING_KEYS = [
   {key:"setupQuality", label:"Setup Quality"},
   {key:"entryQuality", label:"Entry Quality"},
@@ -20,6 +34,7 @@ const SIDEBAR_STATE_KEY = "tj_sidebar_collapsed";
 // ---------- state ----------
 let trades = loadTrades();
 let current = blankTrade();
+let customOptions = loadCustomOptions();
 let activeSlotKey = null; // which image slot / note field the modal is editing
 let activeIsNote = false;
 
@@ -36,6 +51,8 @@ let tokenClient = null;
 // INIT
 // ============================================================
 document.addEventListener("DOMContentLoaded", () => {
+  populateConfigurableFields();
+  renderSettings();
   buildRatingBlock();
   buildTagBlock();
   bindPillToggles();
@@ -82,12 +99,15 @@ function nextTradeNumber(){
 function showView(name){
   document.getElementById("listView").classList.toggle("active", name==="list");
   document.getElementById("formView").classList.toggle("active", name==="form");
+  document.getElementById("settingsView").classList.toggle("active", name==="settings");
   if(name==="list") renderTradeList();
+  if(name==="settings") renderSettings();
 }
 
 function bindTopbar(){
   document.getElementById("viewListBtn").onclick = () => showView("list");
   document.getElementById("viewNewBtn").onclick = () => { current = blankTrade(); loadFormFromCurrent(); showView("form"); };
+  document.getElementById("viewSettingsBtn").onclick = () => showView("settings");
   document.getElementById("connectDriveBtn").onclick = requestDriveAccess;
 }
 
@@ -195,7 +215,7 @@ function updateTotalScore(){
 function buildTagBlock(){
   const el = document.getElementById("tagBlock");
   el.innerHTML = "";
-  TAGS.forEach(tag => {
+  customOptions.tags.forEach(tag => {
     const chip = document.createElement("span");
     chip.className = "tag-chip";
     chip.textContent = "#"+tag;
@@ -206,6 +226,128 @@ function buildTagBlock(){
     });
     el.appendChild(chip);
   });
+}
+
+// ============================================================
+// USER-CONFIGURABLE DROPDOWNS / TAGS
+// ============================================================
+function loadCustomOptions(){
+  let saved = {};
+  try{ saved = JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {}; }catch(e){ saved = {}; }
+  return Object.fromEntries(Object.entries(DEFAULT_OPTIONS).map(([key, defaults]) => {
+    const values = Array.isArray(saved[key]) ? saved[key] : defaults;
+    const cleaned = [...new Set(values.map(value => String(value).trim()).filter(Boolean))];
+    return [key, cleaned.sort((a,b) => a.localeCompare(b, undefined, {sensitivity:"base"}))];
+  }));
+}
+
+function persistCustomOptions(){
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(customOptions));
+}
+
+function fillSelect(id, values, placeholder){
+  const select = document.getElementById(id);
+  const currentValue = select.multiple
+    ? [...select.selectedOptions].map(option => option.value)
+    : select.value;
+  select.innerHTML = select.multiple ? "" : `<option value="">${placeholder}</option>`;
+  values.forEach(value => {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = value;
+    select.appendChild(option);
+  });
+  if(select.multiple){
+    [...select.options].forEach(option => { option.selected = currentValue.includes(option.value); });
+  }else{
+    select.value = currentValue;
+  }
+}
+
+function populateConfigurableFields(){
+  fillSelect("f_timeframe", customOptions.timeframes, "");
+  fillSelect("f_setup", customOptions.setups, "เลือก Setup");
+  fillSelect("f_keyLevel", customOptions.keyLevels, "เลือก Key Level / Zone");
+  fillSelect("f_confirmationType", customOptions.confirmationTypes, "เลือก Confirmation Type");
+}
+
+function renderSettings(){
+  const grid = document.getElementById("settingsGrid");
+  if(!grid) return;
+  grid.innerHTML = "";
+  SETTINGS_SECTIONS.forEach(section => {
+    const card = document.createElement("div");
+    card.className = "settings-card panel";
+    card.innerHTML = `<div class="panel-head head-info">${section.label}</div><div class="panel-body"><div class="settings-add"><input type="text" placeholder="${section.placeholder}"><button type="button" class="btn btn-primary small">+ เพิ่ม</button></div><div class="settings-items"></div></div>`;
+    const input = card.querySelector("input");
+    const add = () => addSettingOption(section.key, input.value);
+    card.querySelector(".settings-add button").onclick = add;
+    input.addEventListener("keydown", event => { if(event.key === "Enter") add(); });
+    const items = card.querySelector(".settings-items");
+    customOptions[section.key].forEach((value, index) => {
+      const row = document.createElement("div");
+      row.className = "settings-item";
+      const name = document.createElement("span");
+      name.textContent = value;
+      const actions = document.createElement("div");
+      actions.className = "settings-item-actions";
+      const edit = document.createElement("button");
+      edit.type = "button";
+      edit.className = "btn btn-ghost tiny";
+      edit.textContent = "แก้ไข";
+      edit.onclick = () => editSettingOption(section.key, index);
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "btn btn-danger tiny";
+      remove.textContent = "ลบ";
+      remove.onclick = () => deleteSettingOption(section.key, index);
+      actions.append(edit, remove);
+      row.append(name, actions);
+      items.appendChild(row);
+    });
+    grid.appendChild(card);
+  });
+}
+
+function addSettingOption(key, rawValue){
+  const value = String(rawValue || "").trim();
+  if(!value) return;
+  if(customOptions[key].some(item => item.toLowerCase() === value.toLowerCase())){
+    alert("มีตัวเลือกนี้อยู่แล้ว");
+    return;
+  }
+  customOptions[key].push(value);
+  customOptions[key].sort((a,b) => a.localeCompare(b, undefined, {sensitivity:"base"}));
+  refreshCustomOptionsUI();
+}
+
+function editSettingOption(key, index){
+  const oldValue = customOptions[key][index];
+  const value = prompt("แก้ไขชื่อตัวเลือก", oldValue)?.trim();
+  if(!value || value === oldValue) return;
+  if(customOptions[key].some((item,itemIndex) => itemIndex !== index && item.toLowerCase() === value.toLowerCase())){
+    alert("มีตัวเลือกนี้อยู่แล้ว");
+    return;
+  }
+  customOptions[key][index] = value;
+  customOptions[key].sort((a,b) => a.localeCompare(b, undefined, {sensitivity:"base"}));
+  refreshCustomOptionsUI();
+}
+
+function deleteSettingOption(key, index){
+  const value = customOptions[key][index];
+  if(!confirm(`ลบ “${value}” ออกจากตัวเลือก? ข้อมูลในเทรดเก่าจะยังอยู่`)) return;
+  customOptions[key].splice(index, 1);
+  refreshCustomOptionsUI();
+}
+
+function refreshCustomOptionsUI(){
+  persistCustomOptions();
+  populateConfigurableFields();
+  buildTagBlock();
+  applyTagState();
+  loadFormFromCurrent();
+  renderSettings();
 }
 function applyTagState(){
   document.querySelectorAll(".tag-chip").forEach(chip => {
@@ -223,7 +365,7 @@ function allFieldInputs(){
 function bindFieldAutosync(){
   allFieldInputs().forEach(inp => {
     inp.addEventListener("input", () => {
-      current.fields[inp.id] = inp.value;
+      current.fields[inp.id] = inp.multiple ? [...inp.selectedOptions].map(option => option.value) : inp.value;
       if(["f_entryPrice", "f_slPrice", "f_exitPrice", "f_entryTime", "f_exitTime"].includes(inp.id)) updateCalculatedStats();
     });
   });
@@ -351,7 +493,32 @@ function loadFormFromCurrent(){
   if(legacyDate && current.fields.f_exitTime && !current.fields.f_exitTime.includes("T")){
     current.fields.f_exitTime = `${legacyDate}T${current.fields.f_exitTime}`;
   }
-  allFieldInputs().forEach(inp => { inp.value = current.fields[inp.id] || ""; });
+  if(current.toggles.confirmationType && !current.fields.f_confirmationType){
+    current.fields.f_confirmationType = current.toggles.confirmationType;
+  }
+  allFieldInputs().forEach(inp => {
+    const stored = current.fields[inp.id];
+    if(inp.tagName !== "SELECT"){
+      inp.value = stored || "";
+      return;
+    }
+    const values = inp.multiple
+      ? (Array.isArray(stored) ? stored : String(stored || "").split(",").map(value => value.trim()).filter(Boolean))
+      : [String(stored || "")];
+    values.filter(Boolean).forEach(value => {
+      if(![...inp.options || []].some(option => option.value === value)){
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = `${value} (ค่าจากเทรดเดิม)`;
+        inp.appendChild(option);
+      }
+    });
+    if(inp.multiple){
+      [...inp.options].forEach(option => { option.selected = values.includes(option.value); });
+    }else{
+      inp.value = values[0] || "";
+    }
+  });
   applyToggleState();
   updateCalculatedStats();
   applyTagState();
