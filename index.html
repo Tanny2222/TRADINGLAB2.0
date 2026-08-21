@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20260821-21">
+  <link rel="stylesheet" href="style.css?v=20260821-22">
 </head>
 <body>
 
@@ -85,7 +85,7 @@
       <div class="panel">
         <div class="panel-head head-info"><span class="ico">◧</span> TRADE INFORMATION</div>
         <div class="panel-body cols-in-panel">
-          <div class="field span-all"><label>ASSET / PAIR</label><input type="text" id="f_asset" placeholder="เช่น XAUUSD, BTCUSD"></div>
+          <div class="field span-all"><label>ASSET / PAIR</label><select id="f_asset"><option value="">เลือก Asset / Pair</option></select></div>
           <div class="field"><label>Entry Datetime</label><input type="datetime-local" id="f_entryTime"></div>
           <div class="field"><label>Exit Datetime</label><input type="datetime-local" id="f_exitTime"></div>
           <div class="field"><label>TIMEFRAME (เลือกได้หลายค่า)</label><details id="timeframeDropdown" class="multi-dropdown"><summary id="timeframeDropdownLabel">เลือก Timeframe</summary><div id="timeframeOptions" class="multi-dropdown-menu"></div></details><span class="field-hint">เปิด dropdown แล้วเลือก Timeframe ทีละค่า</span></div>
@@ -308,6 +308,6 @@
 
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="config.js"></script>
-<script src="app.js?v=20260821-21"></script>
+<script src="app.js?v=20260821-22"></script>
 </body>
 </html>

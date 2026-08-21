@@ -9,6 +9,7 @@ const SHEET_ID_KEY = "tj_google_sheet_id";
 const SETTINGS_KEY = "tj_custom_options_v1";
 
 const DEFAULT_OPTIONS = {
+  assets: ["BTCUSD","EURUSD","GBPUSD","USDJPY","XAUUSD"],
   timeframes: ["M1","M5","M15","M30","H1","H4","D1","W1"],
   setups: ["A Setup","B Setup","Breakout","C Setup","Counter Trend","Follow Trend","Pullback","Reversal"],
   keyLevels: ["Support","Resistance","Demand Zone","Supply Zone"],
@@ -16,6 +17,7 @@ const DEFAULT_OPTIONS = {
   tags: ["Trend","Pullback","Breakout","CounterTrend","FollowTrend","A Setup","B Setup","C Setup","Win","Loss","BE","Mistake"]
 };
 const SETTINGS_SECTIONS = [
+  {key:"assets", label:"Asset / Pair", placeholder:"เช่น XAUUSD"},
   {key:"timeframes", label:"Timeframe", placeholder:"เช่น H1"},
   {key:"setups", label:"Setup", placeholder:"เช่น Breakout"},
   {key:"keyLevels", label:"Key Level / Zone", placeholder:"เช่น Daily Support"},
@@ -269,6 +271,7 @@ function fillSelect(id, values, placeholder){
 }
 
 function populateConfigurableFields(){
+  fillSelect("f_asset", customOptions.assets, "เลือก Asset / Pair");
   populateTimeframeDropdown();
   fillSelect("f_setup", customOptions.setups, "เลือก Setup");
   fillSelect("f_keyLevel", customOptions.keyLevels, "เลือก Key Level / Zone");
