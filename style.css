@@ -180,11 +180,11 @@ body.has-ticker .sheet-header{top:34px;}
 .trade-context-grid{align-items:stretch;}
 .trade-context-grid > .panel{height:100%;display:flex;flex-direction:column;}
 .trade-context-grid > .panel > .panel-body{flex:1;}
-.grid-4{display:grid;grid-template-columns:2fr 1fr 1fr;gap:16px;margin-top:16px;align-items:stretch;}
+.grid-4{display:grid;grid-template-columns:2fr 1fr 1fr;grid-template-rows:auto 1fr;gap:16px;margin-top:16px;align-items:stretch;}
 .grid-4 > .panel{height:100%;display:flex;flex-direction:column;}
 .grid-4 > .panel > .panel-body{flex:1;}
 .col{display:flex;flex-direction:column;gap:16px;}
-.span2{grid-column:span 1;}
+.span2{grid-column:1;grid-row:1 / span 2;}
 .full-row{width:100%;margin-bottom:16px;}
 .full-row.after-row{margin-top:16px;margin-bottom:0;}
 
@@ -208,7 +208,8 @@ body.has-ticker .sheet-header{top:34px;}
 
 @media (max-width:1080px){
   .grid-2top{grid-template-columns:1fr;}
-  .grid-4{grid-template-columns:1fr;}
+  .grid-4{grid-template-columns:1fr;grid-template-rows:auto;}
+  .grid-4 > .panel,.span2,.stats-panel,.review-panel,.lesson-full-panel{grid-column:auto;grid-row:auto;height:auto;}
   .imgrow3{grid-template-columns:1fr;}
 }
 @media (max-width:820px){
@@ -327,14 +328,19 @@ body.has-ticker .sheet-header{top:34px;}
 
 /* ============ STATS / REVIEW ============ */
 .stats-col{display:flex;flex-direction:column;}
+.stats-panel{grid-column:2;grid-row:1;}
+.review-panel{grid-column:3;grid-row:1;}
 .stats-panel .stats-col,.review-panel .panel-body{height:100%;}
-.lesson-full-panel{width:100%;margin-top:16px;}
-.stats-notes{display:flex;flex:1;min-height:220px;flex-direction:column;margin-top:8px;}
-.stats-notes textarea{flex:1;min-height:180px;resize:vertical;}
+.lesson-full-panel{grid-column:2 / 4;grid-row:2;width:100%;margin:0;}
+.stats-notes{display:flex;min-height:0;flex-direction:column;margin-top:8px;}
+.stats-notes textarea{min-height:76px;resize:vertical;}
 .stats-title{font-size:10.5px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;font-weight:700;margin-bottom:8px;}
 .stat-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;}
 .stat-row label{margin:0;flex:0 0 auto;min-width:90px;}
 .stat-row input{width:110px;text-align:right;}
+@media (max-width:1080px){
+  .stats-panel,.review-panel,.lesson-full-panel{grid-column:auto;grid-row:auto;height:auto;}
+}
 
 .rating-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px;}
 .rating-row .rlabel{font-size:12px;color:var(--text);font-weight:600;flex:1;}
