@@ -87,150 +87,103 @@
       </div>
     </div>
 
-    <div class="grid-3">
-
-      <!-- ============ COLUMN 1: TRADE INFO + MARKET CONTEXT ============ -->
-      <div class="col">
-        <div class="panel">
-          <div class="panel-head head-info"><span class="ico">◧</span> TRADE INFORMATION</div>
-          <div class="panel-body">
-            <div class="row2">
-              <div class="field"><label>Entry Time</label><input type="time" id="f_entryTime"></div>
-              <div class="field"><label>Exit Time</label><input type="time" id="f_exitTime"></div>
-            </div>
-            <div class="row2">
-              <div class="field"><label>Entry Price</label><input type="text" class="mono" id="f_entryPrice"></div>
-              <div class="field"><label>Exit Price</label><input type="text" class="mono" id="f_exitPrice"></div>
-            </div>
-            <div class="row2">
-              <div class="field"><label>R : R Multiple</label><input type="text" class="mono" id="f_rrMultiple" placeholder="1 : 2.5"></div>
-              <div class="field"><label>P / L (R)</label><input type="text" class="mono" id="f_plR"></div>
-            </div>
-            <div class="row2">
-              <div class="field"><label>P / L ($ / ฿)</label><input type="text" class="mono" id="f_plMoney"></div>
-              <div class="field"><label>Commission</label><input type="text" class="mono" id="f_commission"></div>
-            </div>
-            <div class="field">
-              <label>Setup Type</label>
-              <div class="pill-toggle" data-field="setupType">
-                <button type="button" data-val="Follow Trend" class="pill">Follow Trend</button>
-                <button type="button" data-val="Counter Trend" class="pill">Counter Trend</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="panel">
-          <div class="panel-head head-info"><span class="ico">▤</span> MARKET CONTEXT & ANALYSIS</div>
-          <div class="panel-body">
-            <div class="field">
-              <label>Market Context (Higher TF)</label>
-              <div class="pill-toggle" data-field="marketContext">
-                <button type="button" data-val="Bullish" class="pill pill-win">Bullish</button>
-                <button type="button" data-val="Bearish" class="pill pill-loss">Bearish</button>
-                <button type="button" data-val="Range" class="pill pill-be">Range</button>
-              </div>
-            </div>
-            <div class="row2">
-              <div class="field">
-                <label>Strong Trend (ต่อเนื่อง)</label>
-                <div class="pill-toggle" data-field="strongTrend">
-                  <button type="button" data-val="Yes" class="pill">Yes</button>
-                  <button type="button" data-val="No" class="pill">No</button>
-                </div>
-              </div>
-              <div class="field">
-                <label>EMA50 Touch in Lookback</label>
-                <div class="pill-toggle" data-field="ema50Touch">
-                  <button type="button" data-val="No Touch" class="pill">No Touch</button>
-                  <button type="button" data-val="Touch" class="pill">Touch</button>
-                </div>
-              </div>
-            </div>
-            <div class="field">
-              <label>Setup Reason / Why This Trade?</label>
-              <textarea id="f_setupReason" rows="2"></textarea>
-            </div>
-            <div class="field"><label>Key Level / Zone</label><input type="text" id="f_keyLevel"></div>
-            <div class="field">
-              <label>Confirmation Type</label>
-              <div class="pill-toggle" data-field="confirmationType">
-                <button type="button" data-val="Engulfing" class="pill">Engulfing</button>
-                <button type="button" data-val="Pin Bar" class="pill">Pin Bar</button>
-                <button type="button" data-val="Other" class="pill">Other</button>
-              </div>
-            </div>
-            <div class="row2">
-              <div class="field"><label>Candle After Touch (count)</label><input type="text" class="mono" id="f_candleAfterTouch"></div>
-              <div class="field"><label>Pullback Size (จาก EMA)</label><input type="text" class="mono" id="f_pullbackSize"></div>
-            </div>
-            <div class="field"><label>Distance From EMA to Entry</label><input type="text" class="mono" id="f_distEmaEntry"></div>
-            <div class="row2">
-              <div class="field"><label>Risk (SL)</label><input type="text" class="mono" id="f_riskSl"></div>
-              <div class="field"><label>Reward (TP)</label><input type="text" class="mono" id="f_rewardTp"></div>
-            </div>
-            <div class="field"><label>RR Plan</label><input type="text" class="mono" id="f_rrPlan"></div>
-            <div class="field">
-              <label>Analysis Before Entry (ทำไมถึงเข้าเทรดนี้?)</label>
-              <textarea id="f_analysisBefore" rows="3"></textarea>
+    <!-- ============ ROW: TRADE INFO + MARKET CONTEXT (side by side) ============ -->
+    <div class="grid-2top">
+      <div class="panel">
+        <div class="panel-head head-info"><span class="ico">◧</span> TRADE INFORMATION</div>
+        <div class="panel-body cols-in-panel">
+          <div class="field"><label>Entry Time</label><input type="time" id="f_entryTime"></div>
+          <div class="field"><label>Exit Time</label><input type="time" id="f_exitTime"></div>
+          <div class="field"><label>Entry Price</label><input type="text" class="mono" id="f_entryPrice"></div>
+          <div class="field"><label>Exit Price</label><input type="text" class="mono" id="f_exitPrice"></div>
+          <div class="field"><label>R : R Multiple</label><input type="text" class="mono" id="f_rrMultiple" placeholder="1 : 2.5"></div>
+          <div class="field"><label>P / L (R)</label><input type="text" class="mono" id="f_plR"></div>
+          <div class="field"><label>P / L ($ / ฿)</label><input type="text" class="mono" id="f_plMoney"></div>
+          <div class="field"><label>Commission</label><input type="text" class="mono" id="f_commission"></div>
+          <div class="field span-all">
+            <label>Setup Type</label>
+            <div class="pill-toggle" data-field="setupType">
+              <button type="button" data-val="Follow Trend" class="pill">Follow Trend</button>
+              <button type="button" data-val="Counter Trend" class="pill">Counter Trend</button>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- ============ COLUMN 2: BEFORE TRADE ============ -->
-      <div class="col">
-        <div class="panel">
-          <div class="panel-head head-before"><span class="ico">◎</span> BEFORE TRADE (Setup Analysis)</div>
-          <div class="panel-body">
-            <div class="imgslot-full" data-slot="before_htf">
-              <div class="imgslot-label">1. Higher Timeframe</div>
-              <div class="imgslot-canvas-wrap"></div>
+      <div class="panel">
+        <div class="panel-head head-info"><span class="ico">▤</span> MARKET CONTEXT & ANALYSIS</div>
+        <div class="panel-body cols-in-panel">
+          <div class="field span-all">
+            <label>Market Context (Higher TF)</label>
+            <div class="pill-toggle" data-field="marketContext">
+              <button type="button" data-val="Bullish" class="pill pill-win">Bullish</button>
+              <button type="button" data-val="Bearish" class="pill pill-loss">Bearish</button>
+              <button type="button" data-val="Range" class="pill pill-be">Range</button>
             </div>
-            <div class="row2">
-              <div class="imgslot" data-slot="before_entry">
-                <div class="imgslot-label">2. Entry Timeframe</div>
-                <div class="imgslot-canvas-wrap"></div>
-              </div>
-              <div class="imgslot" data-slot="before_detail">
-                <div class="imgslot-label">3. Detail / Indicator</div>
-                <div class="imgslot-canvas-wrap"></div>
-              </div>
+          </div>
+          <div class="field">
+            <label>Strong Trend (ต่อเนื่อง)</label>
+            <div class="pill-toggle" data-field="strongTrend">
+              <button type="button" data-val="Yes" class="pill">Yes</button>
+              <button type="button" data-val="No" class="pill">No</button>
             </div>
-            <div class="field notefield">
-              <label>✎ Notes Before Entry</label>
-              <textarea id="f_notesBefore" rows="3"></textarea>
-              <button type="button" class="btn btn-ghost tiny hand-btn" data-target="f_notesBefore">✏ วาดโน้ตมือ</button>
+          </div>
+          <div class="field">
+            <label>EMA50 Touch in Lookback</label>
+            <div class="pill-toggle" data-field="ema50Touch">
+              <button type="button" data-val="No Touch" class="pill">No Touch</button>
+              <button type="button" data-val="Touch" class="pill">Touch</button>
             </div>
+          </div>
+          <div class="field span-all">
+            <label>Setup Reason / Why This Trade?</label>
+            <textarea id="f_setupReason" rows="2"></textarea>
+          </div>
+          <div class="field"><label>Key Level / Zone</label><input type="text" id="f_keyLevel"></div>
+          <div class="field">
+            <label>Confirmation Type</label>
+            <div class="pill-toggle" data-field="confirmationType">
+              <button type="button" data-val="Engulfing" class="pill">Engulfing</button>
+              <button type="button" data-val="Pin Bar" class="pill">Pin Bar</button>
+              <button type="button" data-val="Other" class="pill">Other</button>
+            </div>
+          </div>
+          <div class="field"><label>Candle After Touch (count)</label><input type="text" class="mono" id="f_candleAfterTouch"></div>
+          <div class="field"><label>Pullback Size (จาก EMA)</label><input type="text" class="mono" id="f_pullbackSize"></div>
+          <div class="field"><label>Distance From EMA to Entry</label><input type="text" class="mono" id="f_distEmaEntry"></div>
+          <div class="field"><label>Risk (SL)</label><input type="text" class="mono" id="f_riskSl"></div>
+          <div class="field"><label>Reward (TP)</label><input type="text" class="mono" id="f_rewardTp"></div>
+          <div class="field"><label>RR Plan</label><input type="text" class="mono" id="f_rrPlan"></div>
+          <div class="field span-all">
+            <label>Analysis Before Entry (ทำไมถึงเข้าเทรดนี้?)</label>
+            <textarea id="f_analysisBefore" rows="2"></textarea>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- ============ COLUMN 3: AFTER TRADE ============ -->
-      <div class="col">
-        <div class="panel">
-          <div class="panel-head head-after"><span class="ico">⚑</span> AFTER TRADE (Result & Review)</div>
-          <div class="panel-body">
-            <div class="imgslot-full" data-slot="after_result">
-              <div class="imgslot-label">1. Result Overview</div>
-              <div class="imgslot-canvas-wrap"></div>
-            </div>
-            <div class="row2">
-              <div class="imgslot" data-slot="after_exit">
-                <div class="imgslot-label">2. Exit Timeframe</div>
-                <div class="imgslot-canvas-wrap"></div>
-              </div>
-              <div class="imgslot" data-slot="after_detail">
-                <div class="imgslot-label">3. Detail / Indicator</div>
-                <div class="imgslot-canvas-wrap"></div>
-              </div>
-            </div>
-            <div class="field notefield">
-              <label>✎ Notes After Trade</label>
-              <textarea id="f_notesAfter" rows="3"></textarea>
-              <button type="button" class="btn btn-ghost tiny hand-btn" data-target="f_notesAfter">✏ วาดโน้ตมือ</button>
-            </div>
+    <!-- ============ ROW: BEFORE TRADE (full width) ============ -->
+    <div class="panel full-row">
+      <div class="panel-head head-before"><span class="ico">◎</span> BEFORE TRADE (Setup Analysis)</div>
+      <div class="panel-body">
+        <div class="imgrow3">
+          <div class="imgslot" data-slot="before_htf">
+            <div class="imgslot-label">1. Higher Timeframe</div>
+            <div class="imgslot-canvas-wrap"></div>
           </div>
+          <div class="imgslot" data-slot="before_entry">
+            <div class="imgslot-label">2. Entry Timeframe</div>
+            <div class="imgslot-canvas-wrap"></div>
+          </div>
+          <div class="imgslot" data-slot="before_detail">
+            <div class="imgslot-label">3. Detail / Indicator</div>
+            <div class="imgslot-canvas-wrap"></div>
+          </div>
+        </div>
+        <div class="field notefield">
+          <label>✎ Notes Before Entry</label>
+          <textarea id="f_notesBefore" rows="2"></textarea>
+          <button type="button" class="btn btn-ghost tiny hand-btn" data-target="f_notesBefore">✏ วาดโน้ตมือ</button>
         </div>
       </div>
     </div>
@@ -299,6 +252,32 @@
             <label>💡 Quote / Reminder</label>
             <textarea id="f_quote" rows="2"></textarea>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ ROW: AFTER TRADE (full width, bottom) ============ -->
+    <div class="panel full-row after-row">
+      <div class="panel-head head-after"><span class="ico">⚑</span> AFTER TRADE (Result & Review)</div>
+      <div class="panel-body">
+        <div class="imgrow3">
+          <div class="imgslot" data-slot="after_result">
+            <div class="imgslot-label">1. Result Overview</div>
+            <div class="imgslot-canvas-wrap"></div>
+          </div>
+          <div class="imgslot" data-slot="after_exit">
+            <div class="imgslot-label">2. Exit Timeframe</div>
+            <div class="imgslot-canvas-wrap"></div>
+          </div>
+          <div class="imgslot" data-slot="after_detail">
+            <div class="imgslot-label">3. Detail / Indicator</div>
+            <div class="imgslot-canvas-wrap"></div>
+          </div>
+        </div>
+        <div class="field notefield">
+          <label>✎ Notes After Trade</label>
+          <textarea id="f_notesAfter" rows="2"></textarea>
+          <button type="button" class="btn btn-ghost tiny hand-btn" data-target="f_notesAfter">✏ วาดโน้ตมือ</button>
         </div>
       </div>
     </div>
