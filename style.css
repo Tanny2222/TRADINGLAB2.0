@@ -332,8 +332,9 @@ body.has-ticker .sheet-header{top:34px;}
 .review-panel{grid-column:3;grid-row:1;}
 .stats-panel .stats-col,.review-panel .panel-body{height:100%;}
 .lesson-full-panel{grid-column:2 / 4;grid-row:2;width:100%;margin:0;}
-.stats-notes{display:flex;min-height:0;flex-direction:column;margin-top:8px;}
-.stats-notes textarea{min-height:76px;resize:vertical;}
+.lesson-full-panel .panel-body{display:flex;flex-direction:column;}
+.lesson-full-panel .field{display:flex;flex:1;min-height:0;flex-direction:column;}
+.lesson-full-panel textarea{flex:1;min-height:110px;resize:vertical;}
 .stats-title{font-size:10.5px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;font-weight:700;margin-bottom:8px;}
 .stat-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;}
 .stat-row label{margin:0;flex:0 0 auto;min-width:90px;}
