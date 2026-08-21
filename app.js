@@ -15,7 +15,7 @@ const RATING_KEYS = [
   {key:"ruleFollow", label:"ตามระบบ (Rule Follow)"},
   {key:"emotionalControl", label:"Emotional Control"},
 ];
-const IMG_SLOTS = ["before_htf","before_entry","before_detail","after_result","after_exit","after_detail"];
+const IMG_SLOTS = ["before_htf","before_entry","before_detail","before_extra_1","after_result","after_exit","after_detail"];
 const SIDEBAR_STATE_KEY = "tj_sidebar_collapsed";
 
 // ---------- state ----------
@@ -63,6 +63,7 @@ function blankTrade(){
     ratings: {}, // rating key -> 0-5
     tags: [],
     images: {}, // slot -> {driveId, name, thumbnailLink, webViewLink, localDataUrl}
+    beforeSlotCount: 4,
   };
 }
 
@@ -319,9 +320,40 @@ function loadFormFromCurrent(){
 // IMAGE SLOTS -> open annotate modal
 // ============================================================
 function bindImageSlots(){
-  document.querySelectorAll("[data-slot]").forEach(slotEl => {
-    slotEl.addEventListener("click", () => openAnnotateModal(slotEl.dataset.slot, false, slotEl.dataset.slot));
-  });
+  document.querySelectorAll("[data-slot]").forEach(bindImageSlotElement);
+  document.getElementById("addBeforeImageBtn").onclick = () => {
+    const nextNumber = Math.max(4, current.beforeSlotCount || 4) + 1;
+    current.beforeSlotCount = nextNumber;
+    createBeforeImageSlot(nextNumber);
+  };
+}
+function bindImageSlotElement(slotEl){
+  if(slotEl.dataset.bound === "true") return;
+  slotEl.dataset.bound = "true";
+  slotEl.addEventListener("click", () => openAnnotateModal(slotEl.dataset.slot, false, slotEl.dataset.slot));
+}
+function createBeforeImageSlot(number){
+  const gallery = document.getElementById("beforeImageGallery");
+  if(!gallery || number <= 4) return;
+  const slot = `before_extra_${number - 3}`;
+  if(gallery.querySelector(`[data-slot="${slot}"]`)) return;
+  const slotEl = document.createElement("div");
+  slotEl.className = "imgslot before-dynamic";
+  slotEl.dataset.slot = slot;
+  slotEl.innerHTML = `<div class="imgslot-label">${number}. Additional Chart</div><div class="imgslot-canvas-wrap"></div>`;
+  gallery.appendChild(slotEl);
+  bindImageSlotElement(slotEl);
+  renderImageSlot(slot);
+}
+function syncBeforeImageSlots(){
+  document.querySelectorAll(".before-dynamic").forEach(el => el.remove());
+  const highestImageNumber = Object.keys(current.images || {}).reduce((highest, key) => {
+    const match = key.match(/^before_extra_(\d+)$/);
+    return match ? Math.max(highest, Number(match[1]) + 3) : highest;
+  }, 4);
+  const count = Math.max(4, current.beforeSlotCount || 4, highestImageNumber);
+  current.beforeSlotCount = count;
+  for(let number = 5; number <= count; number++) createBeforeImageSlot(number);
 }
 function bindNoteHandButtons(){
   document.querySelectorAll(".hand-btn").forEach(btn => {
@@ -333,7 +365,8 @@ function bindNoteHandButtons(){
   });
 }
 function renderAllImageSlots(){
-  IMG_SLOTS.forEach(slot => renderImageSlot(slot));
+  syncBeforeImageSlots();
+  document.querySelectorAll("[data-slot]").forEach(slotEl => renderImageSlot(slotEl.dataset.slot));
 }
 function renderImageSlot(slot){
   const wrap = document.querySelector(`[data-slot="${slot}"] .imgslot-canvas-wrap`);
