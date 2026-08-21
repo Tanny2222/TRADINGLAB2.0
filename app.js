@@ -297,6 +297,13 @@ function updateCalculatedRR(){
 }
 
 function loadFormFromCurrent(){
+  const legacyDate = current.fields.f_date;
+  if(legacyDate && current.fields.f_entryTime && !current.fields.f_entryTime.includes("T")){
+    current.fields.f_entryTime = `${legacyDate}T${current.fields.f_entryTime}`;
+  }
+  if(legacyDate && current.fields.f_exitTime && !current.fields.f_exitTime.includes("T")){
+    current.fields.f_exitTime = `${legacyDate}T${current.fields.f_exitTime}`;
+  }
   allFieldInputs().forEach(inp => { inp.value = current.fields[inp.id] || ""; });
   applyToggleState();
   updateCalculatedRR();
@@ -693,8 +700,10 @@ function renderTradeList(){
   container.innerHTML = filtered.map(t => {
     const res = t.toggles?.result || "-";
     const dir = t.toggles?.direction || "-";
+    const entryDatetime = t.fields?.f_entryTime || "";
+    const tradeDate = entryDatetime.includes("T") ? entryDatetime.split("T")[0] : (t.fields?.f_date || "-");
     return `<div class="trade-row" onclick="openTrade('${t.id}')">
-      <span class="mono">${t.fields?.f_date || "-"}</span>
+      <span class="mono">${escapeHtml(tradeDate)}</span>
       <span><b>${escapeHtml(t.fields?.f_asset || "—")}</b></span>
       <span class="mono">${dir}</span>
       <span class="mono">${escapeHtml(t.fields?.f_plMoney||"")}</span>
