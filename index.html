@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20260821-09">
+  <link rel="stylesheet" href="style.css?v=20260821-10">
 </head>
 <body>
 
@@ -191,12 +191,12 @@
       <div class="panel span2">
         <div class="panel-head head-post"><span class="ico">▥</span> POST-TRADE ANALYSIS</div>
         <div class="panel-body two-col">
-          <div>
-            <div class="field"><label>สิ่งที่เกิดขึ้นจริง</label><textarea id="f_whatHappened" rows="2"></textarea></div>
-            <div class="field"><label>Entry ถูกต้องหรือไม่</label><textarea id="f_entryCorrect" rows="2"></textarea></div>
-            <div class="field"><label>Exit ถูกต้องหรือไม่</label><textarea id="f_exitCorrect" rows="2"></textarea></div>
-            <div class="field"><label>ผิดถูก / สิ่งที่ผิดพลาด</label><textarea id="f_whatWrong" rows="2"></textarea></div>
-            <div class="field"><label>สิ่งที่ควรทำครั้งต่อไป</label><textarea id="f_nextTime" rows="2"></textarea></div>
+          <div class="post-text-col">
+            <div class="field"><label>สิ่งที่เกิดขึ้นจริง</label><textarea id="f_whatHappened" class="long-text" rows="3"></textarea><button type="button" class="btn btn-ghost tiny hand-btn" data-target="f_whatHappened">✏ วาดโน้ตมือ</button></div>
+            <div class="field"><label>Entry ถูกต้องหรือไม่</label><textarea id="f_entryCorrect" class="long-text" rows="3"></textarea><button type="button" class="btn btn-ghost tiny hand-btn" data-target="f_entryCorrect">✏ วาดโน้ตมือ</button></div>
+            <div class="field"><label>Exit ถูกต้องหรือไม่</label><textarea id="f_exitCorrect" class="long-text" rows="3"></textarea><button type="button" class="btn btn-ghost tiny hand-btn" data-target="f_exitCorrect">✏ วาดโน้ตมือ</button></div>
+            <div class="field"><label>ผิดถูก / สิ่งที่ผิดพลาด</label><textarea id="f_whatWrong" class="long-text" rows="3"></textarea><button type="button" class="btn btn-ghost tiny hand-btn" data-target="f_whatWrong">✏ วาดโน้ตมือ</button></div>
+            <div class="field"><label>สิ่งที่ควรทำครั้งต่อไป</label><textarea id="f_nextTime" class="long-text" rows="3"></textarea><button type="button" class="btn btn-ghost tiny hand-btn" data-target="f_nextTime">✏ วาดโน้ตมือ</button></div>
           </div>
           <div class="stats-col">
             <div class="stats-title">STATS (เก็บข้อมูลเพื่อวิเคราะห์)</div>
@@ -219,7 +219,7 @@
                 <button type="button" data-val="Bad" class="pill">☹️</button>
               </div>
             </div>
-            <div class="field"><label>Notes</label><textarea id="f_statsNotes" rows="2"></textarea></div>
+            <div class="field stats-notes"><label>Notes</label><textarea id="f_statsNotes" class="long-text"></textarea><button type="button" class="btn btn-ghost tiny hand-btn" data-target="f_statsNotes">✏ วาดโน้ตมือ</button></div>
           </div>
         </div>
       </div>
@@ -229,8 +229,8 @@
         <div class="panel-body">
           <div id="ratingBlock"></div>
           <div class="total-score">
-            <span>TOTAL SCORE</span>
-            <span id="totalScore" class="mono">0 / 30</span>
+            <span>ภาพรวม</span>
+            <span id="totalScore">ยังไม่ประเมิน</span>
           </div>
         </div>
       </div>
@@ -319,6 +319,6 @@
 
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="config.js"></script>
-<script src="app.js?v=20260821-09"></script>
+<script src="app.js?v=20260821-10"></script>
 </body>
 </html>

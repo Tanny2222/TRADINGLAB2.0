@@ -142,7 +142,7 @@ function applyToggleState(){
 }
 
 // ============================================================
-// RATING STARS
+// TRADE REVIEW RATINGS
 // ============================================================
 function buildRatingBlock(){
   const el = document.getElementById("ratingBlock");
@@ -150,37 +150,43 @@ function buildRatingBlock(){
   RATING_KEYS.forEach(r => {
     const row = document.createElement("div");
     row.className = "rating-row";
-    row.innerHTML = `<span class="rlabel">${r.label}</span><span class="stars" data-key="${r.key}"></span>`;
+    row.innerHTML = `<span class="rlabel">${r.label}</span><span class="rating-options" data-key="${r.key}"></span>`;
     el.appendChild(row);
-    const starsEl = row.querySelector(".stars");
-    for(let i=1;i<=5;i++){
-      const s = document.createElement("span");
-      s.className = "star";
-      s.textContent = "★";
-      s.dataset.val = i;
-      s.addEventListener("click", () => {
+    const optionsEl = row.querySelector(".rating-options");
+    [{value:1,label:"แย่",className:"bad"},{value:2,label:"ปานกลาง",className:"medium"},{value:3,label:"ดี",className:"good"}].forEach(option => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = `rating-choice ${option.className}`;
+      button.textContent = option.label;
+      button.dataset.val = option.value;
+      button.addEventListener("click", () => {
         const cur = current.ratings[r.key] || 0;
-        current.ratings[r.key] = (cur === i) ? i-1 : i; // click same star to reduce
-        renderStars();
+        current.ratings[r.key] = (cur === option.value) ? 0 : option.value;
+        renderRatings();
         updateTotalScore();
       });
-      starsEl.appendChild(s);
-    }
+      optionsEl.appendChild(button);
+    });
   });
-  renderStars();
+  renderRatings();
 }
-function renderStars(){
-  document.querySelectorAll(".stars").forEach(starsEl => {
-    const key = starsEl.dataset.key;
-    const val = current.ratings[key] || 0;
-    starsEl.querySelectorAll(".star").forEach(s => {
-      s.classList.toggle("filled", Number(s.dataset.val) <= val);
+function renderRatings(){
+  document.querySelectorAll(".rating-options").forEach(optionsEl => {
+    const key = optionsEl.dataset.key;
+    let val = current.ratings[key] || 0;
+    if(val > 3) val = val <= 2 ? 1 : val === 3 ? 2 : 3;
+    optionsEl.querySelectorAll(".rating-choice").forEach(button => {
+      button.classList.toggle("active", Number(button.dataset.val) === val);
     });
   });
 }
 function updateTotalScore(){
-  const total = RATING_KEYS.reduce((sum,r) => sum + (current.ratings[r.key]||0), 0);
-  document.getElementById("totalScore").textContent = `${total} / 30`;
+  const values = RATING_KEYS.map(r => current.ratings[r.key] || 0).filter(Boolean).map(value => value > 3 ? (value <= 2 ? 1 : value === 3 ? 2 : 3) : value);
+  const average = values.length ? values.reduce((sum,value) => sum + value, 0) / values.length : 0;
+  const summary = !values.length ? "ยังไม่ประเมิน" : average < 1.5 ? "แย่" : average < 2.5 ? "ปานกลาง" : "ดี";
+  const output = document.getElementById("totalScore");
+  output.textContent = summary;
+  output.dataset.level = values.length ? summary : "";
 }
 
 // ============================================================
@@ -349,7 +355,7 @@ function loadFormFromCurrent(){
   applyToggleState();
   updateCalculatedStats();
   applyTagState();
-  renderStars();
+  renderRatings();
   updateTotalScore();
   renderAllImageSlots();
   document.getElementById("deleteTradeBtn").style.display = current.id ? "inline-block" : "none";
