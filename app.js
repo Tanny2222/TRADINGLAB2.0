@@ -47,6 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
   bindSaveBar();
   bindSearch();
   bindFieldAutosync();
+  bindSmartTextareas();
   loadFormFromCurrent();
   renderTicker();
   showView("form");
@@ -216,6 +217,43 @@ function bindFieldAutosync(){
     inp.addEventListener("input", () => {
       current.fields[inp.id] = inp.value;
       if(["f_entryPrice", "f_slPrice", "f_exitPrice"].includes(inp.id)) updateCalculatedRR();
+    });
+  });
+}
+
+function bindSmartTextareas(){
+  document.querySelectorAll("#formView textarea").forEach(textarea => {
+    textarea.addEventListener("input", () => {
+      const caret = textarea.selectionStart;
+      const beforeCaret = textarea.value.slice(0, caret);
+      const bulletTrigger = beforeCaret.match(/(^|\n)([ \t]*)- $/);
+      if(!bulletTrigger) return;
+
+      textarea.setRangeText("• ", caret - 2, caret, "end");
+      textarea.dispatchEvent(new Event("input", {bubbles:true}));
+    });
+
+    textarea.addEventListener("keydown", event => {
+      if(event.key !== "Enter" || event.shiftKey || textarea.selectionStart !== textarea.selectionEnd) return;
+
+      const caret = textarea.selectionStart;
+      const lineStart = textarea.value.lastIndexOf("\n", caret - 1) + 1;
+      const currentLine = textarea.value.slice(lineStart, caret);
+      const numbered = currentLine.match(/^(\s*)(\d+)([.)])\s+(.*)$/);
+      const bullet = currentLine.match(/^(\s*)[•-]\s+(.*)$/);
+      if(!numbered && !bullet) return;
+
+      event.preventDefault();
+      const content = numbered ? numbered[4] : bullet[2];
+      if(!content.trim()){
+        textarea.setRangeText("", lineStart, caret, "end");
+      } else {
+        const prefix = numbered
+          ? `${numbered[1]}${Number(numbered[2]) + 1}${numbered[3]} `
+          : `${bullet[1]}• `;
+        textarea.setRangeText(`\n${prefix}`, caret, caret, "end");
+      }
+      textarea.dispatchEvent(new Event("input", {bubbles:true}));
     });
   });
 }

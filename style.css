@@ -52,7 +52,7 @@ input:focus,textarea:focus,select:focus{
 input[type="date"]::-webkit-calendar-picker-indicator,
 input[type="time"]::-webkit-calendar-picker-indicator{filter:invert(1) brightness(1.5);opacity:.9;cursor:pointer;}
 input[readonly]{color:var(--text-dim);cursor:not-allowed;}
-textarea{resize:vertical;font-family:var(--font-body);}
+textarea{resize:vertical;font-family:var(--font-body);line-height:1.55;tab-size:2;}
 label{
   display:block;
   font-size:10.5px;
