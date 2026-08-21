@@ -89,18 +89,12 @@
             </div>
           </div>
           <div class="field"><label>Entry Price</label><input type="text" class="mono" id="f_entryPrice"></div>
+          <div class="field"><label>SL Price</label><input type="text" class="mono" id="f_slPrice"></div>
           <div class="field"><label>Exit Price</label><input type="text" class="mono" id="f_exitPrice"></div>
-          <div class="field"><label>R : R Multiple</label><input type="text" class="mono" id="f_rrMultiple" placeholder="1 : 2.5"></div>
+          <div class="field"><label>R : R Multiple</label><input type="text" class="mono" id="f_rrMultiple" placeholder="คำนวณอัตโนมัติ" readonly aria-readonly="true"></div>
           <div class="field"><label>P / L (R)</label><input type="text" class="mono" id="f_plR"></div>
           <div class="field"><label>P / L ($ / ฿)</label><input type="text" class="mono" id="f_plMoney"></div>
           <div class="field"><label>Commission</label><input type="text" class="mono" id="f_commission"></div>
-          <div class="field span-all">
-            <label>Setup Type</label>
-            <div class="pill-toggle" data-field="setupType">
-              <button type="button" data-val="Follow Trend" class="pill">Follow Trend</button>
-              <button type="button" data-val="Counter Trend" class="pill">Counter Trend</button>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -122,7 +116,14 @@
               <button type="button" data-val="No" class="pill">No</button>
             </div>
           </div>
-          <div class="field span-all">
+          <div class="field">
+            <label>Setup Type</label>
+            <div class="pill-toggle" data-field="setupType">
+              <button type="button" data-val="Follow Trend" class="pill">Follow Trend</button>
+              <button type="button" data-val="Counter Trend" class="pill">Counter Trend</button>
+            </div>
+          </div>
+          <div class="field">
             <label for="f_setup">Setup</label>
             <select id="f_setup">
               <option value="">เลือก Setup</option>

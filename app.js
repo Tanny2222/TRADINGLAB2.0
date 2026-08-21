@@ -46,6 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
   bindModal();
   bindSaveBar();
   bindSearch();
+  bindFieldAutosync();
   loadFormFromCurrent();
   renderTicker();
   showView("form");
@@ -121,6 +122,7 @@ function bindPillToggles(){
         } else {
           delete current.toggles[field];
         }
+        if(field === "direction") updateCalculatedRR();
       });
     });
   });
@@ -211,12 +213,42 @@ function allFieldInputs(){
 }
 function bindFieldAutosync(){
   allFieldInputs().forEach(inp => {
-    inp.addEventListener("input", () => { current.fields[inp.id] = inp.value; });
+    inp.addEventListener("input", () => {
+      current.fields[inp.id] = inp.value;
+      if(["f_entryPrice", "f_slPrice", "f_exitPrice"].includes(inp.id)) updateCalculatedRR();
+    });
   });
 }
+
+function parsePrice(value){
+  const normalized = String(value || "").replace(/,/g, "").trim();
+  if(!normalized) return null;
+  const number = Number(normalized);
+  return Number.isFinite(number) ? number : null;
+}
+
+function updateCalculatedRR(){
+  const entry = parsePrice(current.fields.f_entryPrice);
+  const stop = parsePrice(current.fields.f_slPrice);
+  const exit = parsePrice(current.fields.f_exitPrice);
+  const direction = current.toggles.direction;
+  let result = "";
+
+  if(entry !== null && stop !== null && exit !== null && direction){
+    const risk = direction === "Long" ? entry - stop : stop - entry;
+    const reward = direction === "Long" ? exit - entry : entry - exit;
+    if(risk > 0) result = `1 : ${(reward / risk).toFixed(2)}`;
+  }
+
+  current.fields.f_rrMultiple = result;
+  const output = document.getElementById("f_rrMultiple");
+  if(output) output.value = result;
+}
+
 function loadFormFromCurrent(){
   allFieldInputs().forEach(inp => { inp.value = current.fields[inp.id] || ""; });
   applyToggleState();
+  updateCalculatedRR();
   applyTagState();
   renderStars();
   updateTotalScore();
@@ -224,7 +256,6 @@ function loadFormFromCurrent(){
   document.getElementById("deleteTradeBtn").style.display = current.id ? "inline-block" : "none";
   document.getElementById("saveStatus").textContent = current.id ? `กำลังแก้ไขเทรด #${current.fields.f_tradeNo||""}` : "เทรดใหม่ (ยังไม่บันทึก)";
 }
-bindFieldAutosync();
 
 // ============================================================
 // IMAGE SLOTS -> open annotate modal
