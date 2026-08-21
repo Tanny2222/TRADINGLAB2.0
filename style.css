@@ -297,7 +297,7 @@ button{font-family:var(--font-body);cursor:pointer;}
   background:var(--panel-2);
   cursor:pointer;
   transition:border-color .12s;
-  overflow:hidden;
+  overflow:hidden;position:relative;
 }
 .imgslot-full:hover,.imgslot:hover{border-color:var(--blue);}
 .imgslot-label{
@@ -313,6 +313,14 @@ button{font-family:var(--font-body);cursor:pointer;}
 .imgslot-placeholder{color:var(--text-faint);font-size:20px;}
 .imgslot-full .imgslot-canvas-wrap{min-height:130px;}
 .imgslot-full .imgslot-canvas-wrap img{max-height:180px;}
+.image-delete-btn{
+  position:absolute;top:7px;right:7px;width:26px;height:26px;
+  display:flex;align-items:center;justify-content:center;
+  border:1px solid rgba(255,92,92,.7);border-radius:7px;
+  background:rgba(11,15,20,.9);color:var(--loss);font-size:13px;
+  cursor:pointer;z-index:2;
+}
+.image-delete-btn:hover{background:var(--loss);color:#fff;}
 .before-image-gallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:10px;}
 .before-image-gallery .imgslot{margin-bottom:0;}
 .before-image-gallery .imgslot-canvas-wrap{min-height:130px;}

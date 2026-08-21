@@ -324,8 +324,6 @@ function bindImageSlots(){
   document.getElementById("addBeforeImageBtn").onclick = () => {
     const nextNumber = Math.max(4, current.beforeSlotCount || 4) + 1;
     const slot = `before_extra_${nextNumber - 3}`;
-    current.beforeSlotCount = nextNumber;
-    createBeforeImageSlot(nextNumber);
     openAnnotateModal(slot, false, slot);
   };
 }
@@ -353,7 +351,7 @@ function syncBeforeImageSlots(){
     const match = key.match(/^before_extra_(\d+)$/);
     return match ? Math.max(highest, Number(match[1]) + 3) : highest;
   }, 4);
-  const count = Math.max(4, current.beforeSlotCount || 4, highestImageNumber);
+  const count = Math.max(4, highestImageNumber);
   current.beforeSlotCount = count;
   for(let number = 5; number <= count; number++) createBeforeImageSlot(number);
 }
@@ -375,9 +373,34 @@ function renderImageSlot(slot){
   if(!wrap) return;
   const img = current.images[slot];
   if(img && (img.thumbnailLink || img.localDataUrl)){
-    wrap.innerHTML = `<img src="${img.thumbnailLink || img.localDataUrl}" alt="">`;
+    wrap.innerHTML = `<img src="${img.thumbnailLink || img.localDataUrl}" alt=""><button type="button" class="image-delete-btn" aria-label="ลบรูป" title="ลบรูป">✕</button>`;
+    wrap.querySelector(".image-delete-btn").addEventListener("click", event => {
+      event.stopPropagation();
+      deleteImageFromSlot(slot);
+    });
   } else {
     wrap.innerHTML = `<div class="imgslot-placeholder">🖼</div>`;
+  }
+}
+
+function deleteImageFromSlot(slot){
+  if(!current.images[slot]) return;
+  if(!confirm("ลบรูปนี้ออกจากเทรด? (ไฟล์ใน Google Drive จะไม่ถูกลบ)")) return;
+  delete current.images[slot];
+
+  if(/^before_extra_\d+$/.test(slot)){
+    const remaining = Object.entries(current.images)
+      .filter(([key]) => /^before_extra_\d+$/.test(key))
+      .sort(([a], [b]) => Number(a.split("_").pop()) - Number(b.split("_").pop()))
+      .map(([, image]) => image);
+    Object.keys(current.images).forEach(key => {
+      if(/^before_extra_\d+$/.test(key)) delete current.images[key];
+    });
+    remaining.forEach((image, index) => { current.images[`before_extra_${index + 1}`] = image; });
+    current.beforeSlotCount = 4 + remaining.length;
+    renderAllImageSlots();
+  } else {
+    renderImageSlot(slot);
   }
 }
 
@@ -643,6 +666,12 @@ async function handleUpload(){
       current.images["note:"+activeSlotKey] = record;
     } else {
       current.images[activeSlotKey] = record;
+      const extraMatch = activeSlotKey.match(/^before_extra_(\d+)$/);
+      if(extraMatch){
+        const number = Number(extraMatch[1]) + 3;
+        current.beforeSlotCount = Math.max(4, current.beforeSlotCount || 4, number);
+        createBeforeImageSlot(number);
+      }
       renderImageSlot(activeSlotKey);
     }
     setStatus("✅ อัปโหลดสำเร็จ! บันทึกไว้กับเทรดนี้แล้ว");
