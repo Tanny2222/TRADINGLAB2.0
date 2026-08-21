@@ -323,8 +323,10 @@ function bindImageSlots(){
   document.querySelectorAll("[data-slot]").forEach(bindImageSlotElement);
   document.getElementById("addBeforeImageBtn").onclick = () => {
     const nextNumber = Math.max(4, current.beforeSlotCount || 4) + 1;
+    const slot = `before_extra_${nextNumber - 3}`;
     current.beforeSlotCount = nextNumber;
     createBeforeImageSlot(nextNumber);
+    openAnnotateModal(slot, false, slot);
   };
 }
 function bindImageSlotElement(slotEl){
