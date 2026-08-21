@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20260821-18">
+  <link rel="stylesheet" href="style.css?v=20260821-19">
 </head>
 <body>
 
@@ -88,7 +88,7 @@
           <div class="field span-all"><label>ASSET / PAIR</label><input type="text" id="f_asset" placeholder="เช่น XAUUSD, BTCUSD"></div>
           <div class="field"><label>Entry Datetime</label><input type="datetime-local" id="f_entryTime"></div>
           <div class="field"><label>Exit Datetime</label><input type="datetime-local" id="f_exitTime"></div>
-          <div class="field"><label>TIMEFRAME (เลือกได้หลายค่า)</label><select id="f_timeframe" multiple size="4" aria-label="เลือก Timeframe ได้หลายค่า"></select><span class="field-hint">กด Ctrl / Cmd ค้างเพื่อเลือกหลายค่า</span></div>
+          <div class="field"><label>TIMEFRAME (เลือกได้หลายค่า)</label><details id="timeframeDropdown" class="multi-dropdown"><summary id="timeframeDropdownLabel">เลือก Timeframe</summary><div id="timeframeOptions" class="multi-dropdown-menu"></div></details><span class="field-hint">เปิด dropdown แล้วเลือก Timeframe ทีละค่า</span></div>
           <div class="field">
             <label>DIRECTION</label>
             <div class="pill-toggle" data-field="direction">
@@ -215,7 +215,7 @@
                 <button type="button" data-val="No" class="pill pill-win">No</button>
               </div>
             </div>
-            <div class="stat-row">
+            <div class="stat-row emotional-state-row">
               <label>Emotional State</label>
               <div class="pill-toggle small" data-field="emotionalState">
                 <button type="button" data-val="Good" class="pill">🙂</button>
@@ -308,6 +308,6 @@
 
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="config.js"></script>
-<script src="app.js?v=20260821-18"></script>
+<script src="app.js?v=20260821-19"></script>
 </body>
 </html>

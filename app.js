@@ -52,6 +52,7 @@ let tokenClient = null;
 // ============================================================
 document.addEventListener("DOMContentLoaded", () => {
   populateConfigurableFields();
+  bindTimeframeDropdown();
   renderSettings();
   buildRatingBlock();
   buildTagBlock();
@@ -265,10 +266,56 @@ function fillSelect(id, values, placeholder){
 }
 
 function populateConfigurableFields(){
-  fillSelect("f_timeframe", customOptions.timeframes, "");
+  populateTimeframeDropdown();
   fillSelect("f_setup", customOptions.setups, "เลือก Setup");
   fillSelect("f_keyLevel", customOptions.keyLevels, "เลือก Key Level / Zone");
   fillSelect("f_confirmationType", customOptions.confirmationTypes, "เลือก Confirmation Type");
+}
+
+function getSelectedTimeframes(){
+  const stored = current.fields.f_timeframe;
+  return Array.isArray(stored)
+    ? stored
+    : String(stored || "").split(",").map(value => value.trim()).filter(Boolean);
+}
+
+function populateTimeframeDropdown(){
+  const container = document.getElementById("timeframeOptions");
+  if(!container) return;
+  const selected = getSelectedTimeframes();
+  const available = [...customOptions.timeframes];
+  selected.forEach(value => { if(!available.includes(value)) available.push(value); });
+  container.innerHTML = "";
+  available.sort((a,b) => a.localeCompare(b, undefined, {sensitivity:"base"})).forEach(value => {
+    const label = document.createElement("label");
+    label.className = "multi-dropdown-option";
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.value = value;
+    checkbox.checked = selected.includes(value);
+    checkbox.addEventListener("change", () => {
+      current.fields.f_timeframe = [...container.querySelectorAll('input[type="checkbox"]:checked')].map(input => input.value);
+      updateTimeframeDropdownLabel();
+    });
+    const text = document.createElement("span");
+    text.textContent = customOptions.timeframes.includes(value) ? value : `${value} (ค่าจากเทรดเดิม)`;
+    label.append(checkbox, text);
+    container.appendChild(label);
+  });
+  updateTimeframeDropdownLabel();
+}
+
+function updateTimeframeDropdownLabel(){
+  const selected = getSelectedTimeframes();
+  const label = document.getElementById("timeframeDropdownLabel");
+  if(label) label.textContent = selected.length ? selected.join(", ") : "เลือก Timeframe";
+}
+
+function bindTimeframeDropdown(){
+  const dropdown = document.getElementById("timeframeDropdown");
+  document.addEventListener("click", event => {
+    if(dropdown.open && !dropdown.contains(event.target)) dropdown.open = false;
+  });
 }
 
 function renderSettings(){
@@ -519,6 +566,7 @@ function loadFormFromCurrent(){
       inp.value = values[0] || "";
     }
   });
+  populateTimeframeDropdown();
   applyToggleState();
   updateCalculatedStats();
   applyTagState();
