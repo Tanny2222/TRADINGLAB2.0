@@ -314,11 +314,10 @@ button{font-family:var(--font-body);cursor:pointer;}
 .imgslot-full .imgslot-canvas-wrap{min-height:130px;}
 .imgslot-full .imgslot-canvas-wrap img{max-height:180px;}
 .image-delete-btn{
-  position:absolute;top:7px;right:7px;width:26px;height:26px;
-  display:flex;align-items:center;justify-content:center;
-  border:1px solid rgba(255,92,92,.7);border-radius:7px;
-  background:rgba(11,15,20,.9);color:var(--loss);font-size:13px;
-  cursor:pointer;z-index:2;
+  display:block;width:calc(100% - 16px);margin:0 8px 8px;padding:6px 10px;
+  border:1px solid rgba(255,92,92,.65);border-radius:6px;
+  background:rgba(255,92,92,.08);color:var(--loss);font-size:11.5px;
+  font-weight:700;cursor:pointer;
 }
 .image-delete-btn:hover{background:var(--loss);color:#fff;}
 .before-image-gallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:10px;}

@@ -369,23 +369,30 @@ function renderAllImageSlots(){
   document.querySelectorAll("[data-slot]").forEach(slotEl => renderImageSlot(slotEl.dataset.slot));
 }
 function renderImageSlot(slot){
-  const wrap = document.querySelector(`[data-slot="${slot}"] .imgslot-canvas-wrap`);
+  const slotEl = document.querySelector(`[data-slot="${slot}"]`);
+  const wrap = slotEl?.querySelector(".imgslot-canvas-wrap");
   if(!wrap) return;
+  slotEl.querySelector(".image-delete-btn")?.remove();
   const img = current.images[slot];
   if(img && (img.thumbnailLink || img.localDataUrl)){
-    wrap.innerHTML = `<img src="${img.thumbnailLink || img.localDataUrl}" alt=""><button type="button" class="image-delete-btn" aria-label="ลบรูป" title="ลบรูป">✕</button>`;
-    wrap.querySelector(".image-delete-btn").addEventListener("click", event => {
+    wrap.innerHTML = `<img src="${img.thumbnailLink || img.localDataUrl}" alt="">`;
+    const deleteButton = document.createElement("button");
+    deleteButton.type = "button";
+    deleteButton.className = "image-delete-btn";
+    deleteButton.textContent = "✕ ลบรูป";
+    deleteButton.addEventListener("click", event => {
       event.stopPropagation();
       deleteImageFromSlot(slot);
     });
+    slotEl.appendChild(deleteButton);
   } else {
     wrap.innerHTML = `<div class="imgslot-placeholder">🖼</div>`;
   }
 }
 
 function deleteImageFromSlot(slot){
-  if(!current.images[slot]) return;
-  if(!confirm("ลบรูปนี้ออกจากเทรด? (ไฟล์ใน Google Drive จะไม่ถูกลบ)")) return;
+  if(!current.images[slot]) return false;
+  if(!confirm("ลบรูปนี้ออกจากเทรด? (ไฟล์ใน Google Drive จะไม่ถูกลบ)")) return false;
   delete current.images[slot];
 
   if(/^before_extra_\d+$/.test(slot)){
@@ -402,6 +409,7 @@ function deleteImageFromSlot(slot){
   } else {
     renderImageSlot(slot);
   }
+  return true;
 }
 
 // ============================================================
@@ -419,6 +427,7 @@ function openAnnotateModal(key, isNote, titleKey){
   baseImage = null;
 
   const existing = isNote ? null : current.images[key];
+  document.getElementById("removeCurrentImageBtn").style.display = existing ? "inline-block" : "none";
   const c = canvas();
   const stage = document.querySelector(".canvas-stage");
   const maxW = Math.min(stage.clientWidth - 20, 640);
@@ -451,6 +460,9 @@ function closeAnnotateModal(){
 
 function bindModal(){
   document.getElementById("annotateClose").onclick = closeAnnotateModal;
+  document.getElementById("removeCurrentImageBtn").onclick = () => {
+    if(activeSlotKey && deleteImageFromSlot(activeSlotKey)) closeAnnotateModal();
+  };
   document.getElementById("fileInput").addEventListener("change", (e) => {
     const file = e.target.files[0];
     if(file) loadImageFile(file);
