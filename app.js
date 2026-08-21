@@ -46,6 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
   bindModal();
   bindSaveBar();
   bindSearch();
+  loadFormFromCurrent();
   renderTicker();
   showView("form");
   initGoogleAuth();
