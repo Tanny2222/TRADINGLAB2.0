@@ -356,6 +356,7 @@ function syncBeforeImageSlots(){
   const count = Math.min(4, Math.max(1, highestImageNumber));
   current.beforeSlotCount = count;
   for(let number = 2; number <= count; number++) createBeforeImageSlot(number);
+  document.getElementById("beforeImageGallery").classList.toggle("single-slot", count === 1);
   const addButton = document.getElementById("addBeforeImageBtn");
   addButton.disabled = count >= 4;
   addButton.textContent = count >= 4 ? "เพิ่มรูปครบ 4 รูปแล้ว" : "＋ Add Image";
@@ -509,7 +510,32 @@ function bindModal(){
   document.getElementById("removeCurrentImageBtn").onclick = async () => {
     if(activeSlotKey && await deleteImageFromSlot(activeSlotKey)) closeAnnotateModal();
   };
-  document.getElementById("penColorSelect").onchange = event => { selectedPenColor = event.target.value; };
+  const colorButton = document.getElementById("penColorDropdownButton");
+  const colorMenu = document.getElementById("penColorMenu");
+  colorButton.onclick = event => {
+    event.stopPropagation();
+    const open = colorMenu.classList.toggle("active");
+    if(open){
+      const rect = colorButton.getBoundingClientRect();
+      colorMenu.style.left = `${rect.left}px`;
+      colorMenu.style.top = `${rect.bottom + 6}px`;
+    }
+    colorButton.setAttribute("aria-expanded", String(open));
+  };
+  document.querySelectorAll(".color-option").forEach(option => {
+    option.onclick = event => {
+      event.stopPropagation();
+      selectedPenColor = option.dataset.color;
+      document.getElementById("selectedPenColorSwatch").style.background = selectedPenColor;
+      document.querySelectorAll(".color-option").forEach(item => item.classList.toggle("active", item === option));
+      colorMenu.classList.remove("active");
+      colorButton.setAttribute("aria-expanded", "false");
+    };
+  });
+  document.addEventListener("click", () => {
+    colorMenu.classList.remove("active");
+    colorButton.setAttribute("aria-expanded", "false");
+  });
   document.getElementById("fullSizePreviewBtn").onclick = openFullSizePreview;
   document.getElementById("closeFullSizePreview").onclick = closeFullSizePreview;
   document.getElementById("fullSizePreview").addEventListener("click", event => {
@@ -713,7 +739,10 @@ async function handleUpload(){
     const folderId = await ensureDriveFolder();
     const dataUrl = canvas().toDataURL("image/png");
     const blob = await (await fetch(dataUrl)).blob();
-    const filename = `${activeSlotKey}_${Date.now()}.png`;
+    const tradeNo = String(current.fields.f_tradeNo || "trade").replace(/[^a-zA-Z0-9_-]/g, "-");
+    const beforeFilenameMatch = activeSlotKey.match(/^before_chart_([1-4])$/);
+    const slotName = String(activeSlotKey || "image").replace(/[^a-zA-Z0-9_-]/g, "-");
+    const filename = beforeFilenameMatch ? `${tradeNo}_before_${beforeFilenameMatch[1]}.png` : `${tradeNo}_${slotName}.png`;
 
     const metadata = { name: filename, parents:[folderId] };
     const form = new FormData();
