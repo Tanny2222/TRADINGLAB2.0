@@ -1,0 +1,606 @@
+/* ============================================================
+   TRADING JOURNAL — app.js
+   Vanilla JS, no build step. Data model + Drive upload + canvas draw.
+   ============================================================ */
+
+const STORAGE_KEY = "tj_trades_v1";
+const FOLDER_ID_KEY = "tj_drive_folder_id";
+
+const TAGS = ["Trend","Pullback","Breakout","CounterTrend","FollowTrend","A Setup","B Setup","C Setup","Win","Loss","BE","Mistake"];
+const RATING_KEYS = [
+  {key:"setupQuality", label:"Setup Quality"},
+  {key:"entryQuality", label:"Entry Quality"},
+  {key:"riskManagement", label:"Risk Management"},
+  {key:"exitQuality", label:"Exit Quality"},
+  {key:"ruleFollow", label:"ตามระบบ (Rule Follow)"},
+  {key:"emotionalControl", label:"Emotional Control"},
+];
+const IMG_SLOTS = ["before_htf","before_entry","before_detail","after_result","after_exit","after_detail"];
+
+// ---------- state ----------
+let trades = loadTrades();
+let current = blankTrade();
+let activeSlotKey = null; // which image slot / note field the modal is editing
+let activeIsNote = false;
+
+// canvas state
+let baseImage = null; // HTMLImageElement currently loaded on canvas
+let strokes = [];      // undo stack of stroke arrays
+let currentStroke = null;
+let drawing = false;
+let accessToken = null;
+let tokenClient = null;
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener("DOMContentLoaded", () => {
+  buildRatingBlock();
+  buildTagBlock();
+  bindPillToggles();
+  bindTopbar();
+  bindImageSlots();
+  bindNoteHandButtons();
+  bindModal();
+  bindSaveBar();
+  bindSearch();
+  renderTicker();
+  showView("form");
+  initGoogleAuth();
+});
+
+function blankTrade(){
+  return {
+    id: null,
+    createdAt: Date.now(),
+    fields: {}, // all text inputs by id
+    toggles: {}, // pill-toggle fields
+    ratings: {}, // rating key -> 0-5
+    tags: [],
+    images: {}, // slot -> {driveId, name, thumbnailLink, webViewLink, localDataUrl}
+  };
+}
+
+// ============================================================
+// VIEW SWITCHING
+// ============================================================
+function showView(name){
+  document.getElementById("listView").classList.toggle("active", name==="list");
+  document.getElementById("formView").classList.toggle("active", name==="form");
+  if(name==="list") renderTradeList();
+}
+
+function bindTopbar(){
+  document.getElementById("viewListBtn").onclick = () => showView("list");
+  document.getElementById("viewNewBtn").onclick = () => { current = blankTrade(); loadFormFromCurrent(); showView("form"); };
+  document.getElementById("connectDriveBtn").onclick = requestDriveAccess;
+}
+
+// ============================================================
+// PILL TOGGLES (single-select buttons)
+// ============================================================
+function bindPillToggles(){
+  document.querySelectorAll(".pill-toggle").forEach(group => {
+    const field = group.dataset.field;
+    group.querySelectorAll(".pill").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const already = btn.classList.contains("active");
+        group.querySelectorAll(".pill").forEach(b=>b.classList.remove("active"));
+        if(!already){
+          btn.classList.add("active");
+          current.toggles[field] = btn.dataset.val;
+        } else {
+          delete current.toggles[field];
+        }
+      });
+    });
+  });
+}
+
+function applyToggleState(){
+  document.querySelectorAll(".pill-toggle").forEach(group => {
+    const field = group.dataset.field;
+    const val = current.toggles[field];
+    group.querySelectorAll(".pill").forEach(b => {
+      b.classList.toggle("active", b.dataset.val === val);
+    });
+  });
+}
+
+// ============================================================
+// RATING STARS
+// ============================================================
+function buildRatingBlock(){
+  const el = document.getElementById("ratingBlock");
+  el.innerHTML = "";
+  RATING_KEYS.forEach(r => {
+    const row = document.createElement("div");
+    row.className = "rating-row";
+    row.innerHTML = `<span class="rlabel">${r.label}</span><span class="stars" data-key="${r.key}"></span>`;
+    el.appendChild(row);
+    const starsEl = row.querySelector(".stars");
+    for(let i=1;i<=5;i++){
+      const s = document.createElement("span");
+      s.className = "star";
+      s.textContent = "★";
+      s.dataset.val = i;
+      s.addEventListener("click", () => {
+        const cur = current.ratings[r.key] || 0;
+        current.ratings[r.key] = (cur === i) ? i-1 : i; // click same star to reduce
+        renderStars();
+        updateTotalScore();
+      });
+      starsEl.appendChild(s);
+    }
+  });
+  renderStars();
+}
+function renderStars(){
+  document.querySelectorAll(".stars").forEach(starsEl => {
+    const key = starsEl.dataset.key;
+    const val = current.ratings[key] || 0;
+    starsEl.querySelectorAll(".star").forEach(s => {
+      s.classList.toggle("filled", Number(s.dataset.val) <= val);
+    });
+  });
+}
+function updateTotalScore(){
+  const total = RATING_KEYS.reduce((sum,r) => sum + (current.ratings[r.key]||0), 0);
+  document.getElementById("totalScore").textContent = `${total} / 30`;
+}
+
+// ============================================================
+// TAGS
+// ============================================================
+function buildTagBlock(){
+  const el = document.getElementById("tagBlock");
+  el.innerHTML = "";
+  TAGS.forEach(tag => {
+    const chip = document.createElement("span");
+    chip.className = "tag-chip";
+    chip.textContent = "#"+tag;
+    chip.addEventListener("click", () => {
+      const idx = current.tags.indexOf(tag);
+      if(idx>=0){ current.tags.splice(idx,1); chip.classList.remove("active"); }
+      else { current.tags.push(tag); chip.classList.add("active"); }
+    });
+    el.appendChild(chip);
+  });
+}
+function applyTagState(){
+  document.querySelectorAll(".tag-chip").forEach(chip => {
+    const tag = chip.textContent.replace("#","");
+    chip.classList.toggle("active", current.tags.includes(tag));
+  });
+}
+
+// ============================================================
+// TEXT FIELD BINDING (auto-sync inputs <-> current.fields)
+// ============================================================
+function allFieldInputs(){
+  return document.querySelectorAll("#formView input[id^='f_'], #formView textarea[id^='f_']");
+}
+function bindFieldAutosync(){
+  allFieldInputs().forEach(inp => {
+    inp.addEventListener("input", () => { current.fields[inp.id] = inp.value; });
+  });
+}
+function loadFormFromCurrent(){
+  allFieldInputs().forEach(inp => { inp.value = current.fields[inp.id] || ""; });
+  applyToggleState();
+  applyTagState();
+  renderStars();
+  updateTotalScore();
+  renderAllImageSlots();
+  document.getElementById("deleteTradeBtn").style.display = current.id ? "inline-block" : "none";
+  document.getElementById("saveStatus").textContent = current.id ? `กำลังแก้ไขเทรด #${current.fields.f_tradeNo||""}` : "เทรดใหม่ (ยังไม่บันทึก)";
+}
+bindFieldAutosync();
+
+// ============================================================
+// IMAGE SLOTS -> open annotate modal
+// ============================================================
+function bindImageSlots(){
+  document.querySelectorAll("[data-slot]").forEach(slotEl => {
+    slotEl.addEventListener("click", () => openAnnotateModal(slotEl.dataset.slot, false, slotEl.dataset.slot));
+  });
+}
+function bindNoteHandButtons(){
+  document.querySelectorAll(".hand-btn").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const target = btn.dataset.target; // e.g. f_notesBefore
+      openAnnotateModal(target, true, "note:"+target);
+    });
+  });
+}
+function renderAllImageSlots(){
+  IMG_SLOTS.forEach(slot => renderImageSlot(slot));
+}
+function renderImageSlot(slot){
+  const wrap = document.querySelector(`[data-slot="${slot}"] .imgslot-canvas-wrap`);
+  if(!wrap) return;
+  const img = current.images[slot];
+  if(img && (img.thumbnailLink || img.localDataUrl)){
+    wrap.innerHTML = `<img src="${img.thumbnailLink || img.localDataUrl}" alt="">`;
+  } else {
+    wrap.innerHTML = `<div class="imgslot-placeholder">🖼</div>`;
+  }
+}
+
+// ============================================================
+// ANNOTATE MODAL (canvas drawing + upload)
+// ============================================================
+const canvas = () => document.getElementById("drawCanvas");
+function openAnnotateModal(key, isNote, titleKey){
+  activeSlotKey = key;
+  activeIsNote = isNote;
+  document.getElementById("annotateTitle").textContent = isNote ? "วาดโน้ตลายมือ" : "แนบรูป / วาดทับรูป";
+  document.getElementById("annotateModal").classList.add("active");
+  document.getElementById("uploadStatus").textContent = "";
+  strokes = [];
+  currentStroke = null;
+  baseImage = null;
+
+  const existing = isNote ? null : current.images[key];
+  const c = canvas();
+  const stage = document.querySelector(".canvas-stage");
+  const maxW = Math.min(stage.clientWidth - 20, 640);
+
+  if(existing && existing.localDataUrl){
+    const im = new Image();
+    im.onload = () => { baseImage = im; sizeCanvasToImage(im, maxW); redraw(); };
+    im.src = existing.localDataUrl;
+    document.getElementById("canvasEmpty").style.display = "none";
+  } else if(isNote){
+    // blank ruled canvas for handwriting
+    c.width = maxW; c.height = 320;
+    document.getElementById("canvasEmpty").style.display = "block";
+    redraw();
+  } else {
+    c.width = maxW; c.height = 260;
+    document.getElementById("canvasEmpty").style.display = "block";
+    redraw();
+  }
+}
+function sizeCanvasToImage(im, maxW){
+  const scale = Math.min(maxW / im.width, 1);
+  canvas().width = Math.round(im.width * scale);
+  canvas().height = Math.round(im.height * scale);
+}
+function closeAnnotateModal(){
+  document.getElementById("annotateModal").classList.remove("active");
+  activeSlotKey = null;
+}
+
+function bindModal(){
+  document.getElementById("annotateClose").onclick = closeAnnotateModal;
+  document.getElementById("fileInput").addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if(file) loadImageFile(file);
+  });
+  document.getElementById("pasteBtn").onclick = async () => {
+    try{
+      const items = await navigator.clipboard.read();
+      for(const item of items){
+        const type = item.types.find(t=>t.startsWith("image/"));
+        if(type){
+          const blob = await item.getType(type);
+          loadImageBlob(blob);
+          return;
+        }
+      }
+      setStatus("ไม่พบรูปใน clipboard");
+    }catch(err){
+      setStatus("อ่าน clipboard ไม่ได้ — ลองวางด้วย Ctrl+V แทน");
+    }
+  };
+  document.addEventListener("paste", (e) => {
+    if(!document.getElementById("annotateModal").classList.contains("active")) return;
+    const items = e.clipboardData?.items || [];
+    for(const item of items){
+      if(item.type.startsWith("image/")){
+        loadImageBlob(item.getAsFile());
+        break;
+      }
+    }
+  });
+  document.getElementById("undoBtn").onclick = () => { strokes.pop(); redraw(); };
+  document.getElementById("clearBtn").onclick = () => { strokes = []; baseImage = null; document.getElementById("canvasEmpty").style.display="block"; const c=canvas(); c.getContext("2d").clearRect(0,0,c.width,c.height); };
+  document.getElementById("uploadDriveBtn").onclick = handleUpload;
+
+  // drawing events (pointer events cover mouse + touch + pen incl. Apple Pencil)
+  const c = canvas();
+  c.addEventListener("pointerdown", startStroke);
+  c.addEventListener("pointermove", moveStroke);
+  window.addEventListener("pointerup", endStroke);
+  c.addEventListener("pointerleave", endStroke);
+}
+
+function loadImageFile(file){ loadImageBlob(file); }
+function loadImageBlob(blob){
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const im = new Image();
+    im.onload = () => {
+      baseImage = im;
+      const stage = document.querySelector(".canvas-stage");
+      const maxW = Math.min(stage.clientWidth - 20, 640);
+      sizeCanvasToImage(im, maxW);
+      strokes = [];
+      document.getElementById("canvasEmpty").style.display = "none";
+      redraw();
+    };
+    im.src = e.target.result;
+  };
+  reader.readAsDataURL(blob);
+}
+
+function getPos(e){
+  const rect = canvas().getBoundingClientRect();
+  const scaleX = canvas().width / rect.width;
+  const scaleY = canvas().height / rect.height;
+  return { x:(e.clientX-rect.left)*scaleX, y:(e.clientY-rect.top)*scaleY, p: e.pressure && e.pressure>0 ? e.pressure : 0.5 };
+}
+function startStroke(e){
+  e.preventDefault();
+  drawing = true;
+  document.getElementById("canvasEmpty").style.display = "none";
+  currentStroke = { color: document.getElementById("penColor").value, size: Number(document.getElementById("penSize").value), points:[getPos(e)] };
+  canvas().setPointerCapture(e.pointerId);
+}
+function moveStroke(e){
+  if(!drawing) return;
+  currentStroke.points.push(getPos(e));
+  redraw(true);
+}
+function endStroke(){
+  if(!drawing) return;
+  drawing = false;
+  if(currentStroke && currentStroke.points.length>1) strokes.push(currentStroke);
+  currentStroke = null;
+  redraw();
+}
+function redraw(live){
+  const c = canvas();
+  const ctx = c.getContext("2d");
+  ctx.clearRect(0,0,c.width,c.height);
+  if(baseImage) ctx.drawImage(baseImage,0,0,c.width,c.height);
+  const all = live && currentStroke ? [...strokes, currentStroke] : strokes;
+  all.forEach(s => {
+    if(s.points.length<2) return;
+    ctx.strokeStyle = s.color;
+    ctx.lineJoin = "round"; ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(s.points[0].x, s.points[0].y);
+    for(let i=1;i<s.points.length;i++){
+      const pt = s.points[i];
+      ctx.lineWidth = s.size * (0.6 + pt.p);
+      ctx.lineTo(pt.x, pt.y);
+    }
+    ctx.stroke();
+  });
+}
+function setStatus(msg){ document.getElementById("uploadStatus").textContent = msg; }
+
+function canvasHasContent(){
+  return baseImage !== null || strokes.length > 0;
+}
+
+// ============================================================
+// GOOGLE DRIVE AUTH + UPLOAD
+// ============================================================
+function initGoogleAuth(){
+  const tryInit = () => {
+    if(typeof google === "undefined" || !google.accounts){ setTimeout(tryInit, 300); return; }
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: GOOGLE_CLIENT_ID,
+      scope: DRIVE_SCOPE,
+      callback: (resp) => {
+        if(resp.error){ setDriveStatus(false); return; }
+        accessToken = resp.access_token;
+        setDriveStatus(true);
+      }
+    });
+  };
+  tryInit();
+}
+function requestDriveAccess(){
+  if(!tokenClient){ alert("Google Sign-In ยังโหลดไม่เสร็จ ลองอีกครั้งใน 1-2 วินาที"); return; }
+  if(GOOGLE_CLIENT_ID.startsWith("YOUR_CLIENT_ID")){
+    alert("ยังไม่ได้ใส่ Google Client ID ใน config.js — ดูวิธีตั้งค่าใน README.md");
+    return;
+  }
+  tokenClient.requestAccessToken({ prompt: accessToken ? "" : "consent" });
+}
+function setDriveStatus(connected){
+  const el = document.getElementById("driveStatus");
+  el.classList.toggle("connected", connected);
+  el.classList.toggle("disconnected", !connected);
+  document.getElementById("driveStatusText").textContent = connected ? "Drive: เชื่อมต่อแล้ว" : "Drive: ไม่ได้เชื่อมต่อ";
+  document.getElementById("connectDriveBtn").textContent = connected ? "🔄 ต่ออายุสิทธิ์" : "เชื่อมต่อ Google Drive";
+}
+
+async function ensureDriveFolder(){
+  let folderId = localStorage.getItem(FOLDER_ID_KEY);
+  if(folderId) return folderId;
+
+  const q = encodeURIComponent(`name='${DRIVE_FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`);
+  const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`, {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  }).then(r=>r.json());
+
+  if(searchRes.files && searchRes.files.length>0){
+    folderId = searchRes.files[0].id;
+  } else {
+    const createRes = await fetch("https://www.googleapis.com/drive/v3/files", {
+      method:"POST",
+      headers:{ Authorization:`Bearer ${accessToken}`, "Content-Type":"application/json" },
+      body: JSON.stringify({ name: DRIVE_FOLDER_NAME, mimeType:"application/vnd.google-apps.folder" })
+    }).then(r=>r.json());
+    folderId = createRes.id;
+  }
+  localStorage.setItem(FOLDER_ID_KEY, folderId);
+  return folderId;
+}
+
+async function handleUpload(){
+  if(!canvasHasContent()){ setStatus("ยังไม่มีรูป/ลายเส้นให้อัปโหลด"); return; }
+  if(!accessToken){
+    setStatus("กำลังขอสิทธิ์เข้าถึง Google Drive...");
+    requestDriveAccess();
+    return;
+  }
+  setStatus("กำลังอัปโหลดขึ้น Google Drive...");
+  try{
+    const folderId = await ensureDriveFolder();
+    const dataUrl = canvas().toDataURL("image/png");
+    const blob = await (await fetch(dataUrl)).blob();
+    const filename = `${activeSlotKey}_${Date.now()}.png`;
+
+    const metadata = { name: filename, parents:[folderId] };
+    const form = new FormData();
+    form.append("metadata", new Blob([JSON.stringify(metadata)], {type:"application/json"}));
+    form.append("file", blob);
+
+    const uploadRes = await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink,thumbnailLink", {
+      method:"POST",
+      headers:{ Authorization:`Bearer ${accessToken}` },
+      body: form
+    }).then(r=>r.json());
+
+    if(uploadRes.error){ setStatus("อัปโหลดไม่สำเร็จ: " + uploadRes.error.message); return; }
+
+    // make link-viewable so it can be displayed later without re-auth
+    await fetch(`https://www.googleapis.com/drive/v3/files/${uploadRes.id}/permissions`, {
+      method:"POST",
+      headers:{ Authorization:`Bearer ${accessToken}`, "Content-Type":"application/json" },
+      body: JSON.stringify({ role:"reader", type:"anyone" })
+    });
+
+    const record = {
+      driveId: uploadRes.id,
+      name: uploadRes.name,
+      webViewLink: `https://drive.google.com/file/d/${uploadRes.id}/view`,
+      thumbnailLink: `https://drive.google.com/thumbnail?id=${uploadRes.id}&sz=w600`,
+      localDataUrl: dataUrl
+    };
+
+    if(activeIsNote){
+      current.images["note:"+activeSlotKey] = record;
+    } else {
+      current.images[activeSlotKey] = record;
+      renderImageSlot(activeSlotKey);
+    }
+    setStatus("✅ อัปโหลดสำเร็จ! บันทึกไว้กับเทรดนี้แล้ว");
+    setTimeout(closeAnnotateModal, 700);
+  }catch(err){
+    console.error(err);
+    setStatus("เกิดข้อผิดพลาด: " + err.message);
+  }
+}
+
+// ============================================================
+// SAVE / LOAD / DELETE TRADES (localStorage)
+// ============================================================
+function loadTrades(){
+  try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }catch(e){ return []; }
+}
+function persistTrades(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(trades)); }
+
+function bindSaveBar(){
+  document.getElementById("saveTradeBtn").onclick = saveCurrentTrade;
+  document.getElementById("deleteTradeBtn").onclick = deleteCurrentTrade;
+}
+function saveCurrentTrade(){
+  if(!current.id) current.id = "t_" + Date.now();
+  current.updatedAt = Date.now();
+  const idx = trades.findIndex(t=>t.id===current.id);
+  if(idx>=0) trades[idx] = current; else trades.push(current);
+  persistTrades();
+  document.getElementById("saveStatus").textContent = "✅ บันทึกแล้ว";
+  document.getElementById("deleteTradeBtn").style.display = "inline-block";
+  renderTicker();
+}
+function deleteCurrentTrade(){
+  if(!current.id) return;
+  if(!confirm("ลบเทรดนี้ออกจากบันทึก? (รูปใน Google Drive จะไม่ถูกลบ)")) return;
+  trades = trades.filter(t=>t.id!==current.id);
+  persistTrades();
+  current = blankTrade();
+  loadFormFromCurrent();
+  renderTicker();
+  showView("list");
+}
+function openTrade(id){
+  const t = trades.find(x=>x.id===id);
+  if(!t) return;
+  current = JSON.parse(JSON.stringify(t));
+  loadFormFromCurrent();
+  showView("form");
+}
+
+// ============================================================
+// TICKER STRIP
+// ============================================================
+function renderTicker(){
+  const el = document.getElementById("ticker");
+  if(trades.length===0){ el.innerHTML = `<div class="ticker-empty">ยังไม่มีเทรดที่บันทึก — เริ่มบันทึกเทรดแรกของคุณได้เลย</div>`; return; }
+  const sorted = [...trades].sort((a,b)=>(b.updatedAt||b.createdAt)-(a.updatedAt||a.createdAt)).slice(0,20);
+  el.innerHTML = sorted.map(t => {
+    const res = t.toggles?.result || "-";
+    const cls = res==="Win"?"tk-win":res==="Loss"?"tk-loss":"tk-be";
+    const asset = t.fields?.f_asset || "—";
+    const pl = t.fields?.f_plR || "";
+    return `<div class="ticker-item"><b>${escapeHtml(asset)}</b><span class="${cls}">${res}</span>${pl?`<span>${escapeHtml(pl)}R</span>`:""}</div>`;
+  }).join("");
+}
+
+// ============================================================
+// LIST VIEW
+// ============================================================
+function bindSearch(){
+  document.getElementById("searchInput").addEventListener("input", renderTradeList);
+  document.getElementById("exportJsonBtn").onclick = exportJson;
+}
+function renderTradeList(){
+  const q = (document.getElementById("searchInput").value||"").toLowerCase();
+  const container = document.getElementById("tradeTable");
+  const filtered = trades.filter(t => {
+    if(!q) return true;
+    const hay = [t.fields?.f_asset, t.fields?.f_setupReason, ...(t.tags||[])].join(" ").toLowerCase();
+    return hay.includes(q);
+  }).sort((a,b)=>(b.updatedAt||b.createdAt)-(a.updatedAt||a.createdAt));
+
+  document.getElementById("listStats").textContent = `${filtered.length} เทรด`;
+
+  if(filtered.length===0){
+    container.innerHTML = `<div class="empty-state">ยังไม่มีเทรดที่บันทึก<br><br><button class="btn btn-primary" onclick="document.getElementById('viewNewBtn').click()">+ เริ่มเทรดแรก</button></div>`;
+    return;
+  }
+  container.innerHTML = filtered.map(t => {
+    const res = t.toggles?.result || "-";
+    const dir = t.toggles?.direction || "-";
+    return `<div class="trade-row" onclick="openTrade('${t.id}')">
+      <span class="mono">${t.fields?.f_date || "-"}</span>
+      <span><b>${escapeHtml(t.fields?.f_asset || "—")}</b></span>
+      <span class="mono">${dir}</span>
+      <span class="mono">${escapeHtml(t.fields?.f_plR||"")}</span>
+      <span class="res-badge res-${res}">${res}</span>
+      <span class="tag-mini">${(t.tags||[]).map(x=>"#"+x).join(" ")}</span>
+      <span class="mono">${escapeHtml(t.fields?.f_tradeNo||"")}</span>
+    </div>`;
+  }).join("");
+}
+
+function exportJson(){
+  const blob = new Blob([JSON.stringify(trades,null,2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `trading-journal-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+}
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+}

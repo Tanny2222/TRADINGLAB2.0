@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Trading Journal — Plan · Execute · Review · Improve</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ===================== TOP BAR ===================== -->
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-mark">TJ</div>
+    <div class="brand-text">
+      <h1>TRADING JOURNAL</h1>
+      <span>Plan · Execute · Review · Improve</span>
+    </div>
+  </div>
+
+  <div class="topbar-actions">
+    <div id="driveStatus" class="drive-status disconnected">
+      <span class="dot"></span>
+      <span id="driveStatusText">Drive: ไม่ได้เชื่อมต่อ</span>
+    </div>
+    <button id="connectDriveBtn" class="btn btn-accent">เชื่อมต่อ Google Drive</button>
+    <button id="viewListBtn" class="btn btn-ghost">รายการเทรด</button>
+    <button id="viewNewBtn" class="btn btn-ghost">+ เทรดใหม่</button>
+  </div>
+</header>
+
+<!-- ===================== TICKER (recent trades strip) ===================== -->
+<div class="ticker-wrap">
+  <div id="ticker" class="ticker"></div>
+</div>
+
+<main id="app">
+
+  <!-- ===================== LIST VIEW ===================== -->
+  <section id="listView" class="view">
+    <div class="list-toolbar">
+      <input id="searchInput" type="text" placeholder="ค้นหา Asset, Tag, Setup...">
+      <div class="list-stats" id="listStats"></div>
+      <button id="exportJsonBtn" class="btn btn-ghost small">Export JSON</button>
+    </div>
+    <div id="tradeTable" class="trade-table"></div>
+  </section>
+
+  <!-- ===================== FORM VIEW ===================== -->
+  <section id="formView" class="view">
+
+    <!-- HEADER ROW: date / trade# / result -->
+    <div class="sheet-header">
+      <div class="field">
+        <label>DATE</label>
+        <input type="date" id="f_date">
+      </div>
+      <div class="field">
+        <label>TRADE #</label>
+        <input type="text" id="f_tradeNo" placeholder="0001">
+      </div>
+      <div class="field grow">
+        <label>ASSET / PAIR</label>
+        <input type="text" id="f_asset" placeholder="เช่น XAUUSD, BTCUSD">
+      </div>
+      <div class="field">
+        <label>TIMEFRAME</label>
+        <input type="text" id="f_timeframe" placeholder="H1 / H4 / D1">
+      </div>
+      <div class="field">
+        <label>DIRECTION</label>
+        <div class="pill-toggle" data-field="direction">
+          <button type="button" data-val="Long" class="pill pill-long">LONG</button>
+          <button type="button" data-val="Short" class="pill pill-short">SHORT</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>RESULT</label>
+        <div class="pill-toggle" data-field="result">
+          <button type="button" data-val="Win" class="pill pill-win">WIN</button>
+          <button type="button" data-val="Loss" class="pill pill-loss">LOSS</button>
+          <button type="button" data-val="BE" class="pill pill-be">BE</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-3">
+
+      <!-- ============ COLUMN 1: TRADE INFO + MARKET CONTEXT ============ -->
+      <div class="col">
+        <div class="panel">
+          <div class="panel-head head-info"><span class="ico">◧</span> TRADE INFORMATION</div>
+          <div class="panel-body">
+            <div class="row2">
+              <div class="field"><label>Entry Time</label><input type="time" id="f_entryTime"></div>
+              <div class="field"><label>Exit Time</label><input type="time" id="f_exitTime"></div>
+            </div>
+            <div class="row2">
+              <div class="field"><label>Entry Price</label><input type="text" class="mono" id="f_entryPrice"></div>
+              <div class="field"><label>Exit Price</label><input type="text" class="mono" id="f_exitPrice"></div>
+            </div>
+            <div class="row2">
+              <div class="field"><label>R : R Multiple</label><input type="text" class="mono" id="f_rrMultiple" placeholder="1 : 2.5"></div>
+              <div class="field"><label>P / L (R)</label><input type="text" class="mono" id="f_plR"></div>
+            </div>
+            <div class="row2">
+              <div class="field"><label>P / L ($ / ฿)</label><input type="text" class="mono" id="f_plMoney"></div>
+              <div class="field"><label>Commission</label><input type="text" class="mono" id="f_commission"></div>
+            </div>
+            <div class="field">
+              <label>Setup Type</label>
+              <div class="pill-toggle" data-field="setupType">
+                <button type="button" data-val="Follow Trend" class="pill">Follow Trend</button>
+                <button type="button" data-val="Counter Trend" class="pill">Counter Trend</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head head-info"><span class="ico">▤</span> MARKET CONTEXT & ANALYSIS</div>
+          <div class="panel-body">
+            <div class="field">
+              <label>Market Context (Higher TF)</label>
+              <div class="pill-toggle" data-field="marketContext">
+                <button type="button" data-val="Bullish" class="pill pill-win">Bullish</button>
+                <button type="button" data-val="Bearish" class="pill pill-loss">Bearish</button>
+                <button type="button" data-val="Range" class="pill pill-be">Range</button>
+              </div>
+            </div>
+            <div class="row2">
+              <div class="field">
+                <label>Strong Trend (ต่อเนื่อง)</label>
+                <div class="pill-toggle" data-field="strongTrend">
+                  <button type="button" data-val="Yes" class="pill">Yes</button>
+                  <button type="button" data-val="No" class="pill">No</button>
+                </div>
+              </div>
+              <div class="field">
+                <label>EMA50 Touch in Lookback</label>
+                <div class="pill-toggle" data-field="ema50Touch">
+                  <button type="button" data-val="No Touch" class="pill">No Touch</button>
+                  <button type="button" data-val="Touch" class="pill">Touch</button>
+                </div>
+              </div>
+            </div>
+            <div class="field">
+              <label>Setup Reason / Why This Trade?</label>
+              <textarea id="f_setupReason" rows="2"></textarea>
+            </div>
+            <div class="field"><label>Key Level / Zone</label><input type="text" id="f_keyLevel"></div>
+            <div class="field">
+              <label>Confirmation Type</label>
+              <div class="pill-toggle" data-field="confirmationType">
+                <button type="button" data-val="Engulfing" class="pill">Engulfing</button>
+                <button type="button" data-val="Pin Bar" class="pill">Pin Bar</button>
+                <button type="button" data-val="Other" class="pill">Other</button>
+              </div>
+            </div>
+            <div class="row2">
+              <div class="field"><label>Candle After Touch (count)</label><input type="text" class="mono" id="f_candleAfterTouch"></div>
+              <div class="field"><label>Pullback Size (จาก EMA)</label><input type="text" class="mono" id="f_pullbackSize"></div>
+            </div>
+            <div class="field"><label>Distance From EMA to Entry</label><input type="text" class="mono" id="f_distEmaEntry"></div>
+            <div class="row2">
+              <div class="field"><label>Risk (SL)</label><input type="text" class="mono" id="f_riskSl"></div>
+              <div class="field"><label>Reward (TP)</label><input type="text" class="mono" id="f_rewardTp"></div>
+            </div>
+            <div class="field"><label>RR Plan</label><input type="text" class="mono" id="f_rrPlan"></div>
+            <div class="field">
+              <label>Analysis Before Entry (ทำไมถึงเข้าเทรดนี้?)</label>
+              <textarea id="f_analysisBefore" rows="3"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ COLUMN 2: BEFORE TRADE ============ -->
+      <div class="col">
+        <div class="panel">
+          <div class="panel-head head-before"><span class="ico">◎</span> BEFORE TRADE (Setup Analysis)</div>
+          <div class="panel-body">
+            <div class="imgslot-full" data-slot="before_htf">
+              <div class="imgslot-label">1. Higher Timeframe</div>
+              <div class="imgslot-canvas-wrap"></div>
+            </div>
+            <div class="row2">
+              <div class="imgslot" data-slot="before_entry">
+                <div class="imgslot-label">2. Entry Timeframe</div>
+                <div class="imgslot-canvas-wrap"></div>
+              </div>
+              <div class="imgslot" data-slot="before_detail">
+                <div class="imgslot-label">3. Detail / Indicator</div>
+                <div class="imgslot-canvas-wrap"></div>
+              </div>
+            </div>
+            <div class="field notefield">
+              <label>✎ Notes Before Entry</label>
+              <textarea id="f_notesBefore" rows="3"></textarea>
+              <button type="button" class="btn btn-ghost tiny hand-btn" data-target="f_notesBefore">✏ วาดโน้ตมือ</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ COLUMN 3: AFTER TRADE ============ -->
+      <div class="col">
+        <div class="panel">
+          <div class="panel-head head-after"><span class="ico">⚑</span> AFTER TRADE (Result & Review)</div>
+          <div class="panel-body">
+            <div class="imgslot-full" data-slot="after_result">
+              <div class="imgslot-label">1. Result Overview</div>
+              <div class="imgslot-canvas-wrap"></div>
+            </div>
+            <div class="row2">
+              <div class="imgslot" data-slot="after_exit">
+                <div class="imgslot-label">2. Exit Timeframe</div>
+                <div class="imgslot-canvas-wrap"></div>
+              </div>
+              <div class="imgslot" data-slot="after_detail">
+                <div class="imgslot-label">3. Detail / Indicator</div>
+                <div class="imgslot-canvas-wrap"></div>
+              </div>
+            </div>
+            <div class="field notefield">
+              <label>✎ Notes After Trade</label>
+              <textarea id="f_notesAfter" rows="3"></textarea>
+              <button type="button" class="btn btn-ghost tiny hand-btn" data-target="f_notesAfter">✏ วาดโน้ตมือ</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ ROW 2: POST-TRADE / REVIEW / LESSON ============ -->
+    <div class="grid-4">
+      <div class="panel span2">
+        <div class="panel-head head-post"><span class="ico">▥</span> POST-TRADE ANALYSIS</div>
+        <div class="panel-body two-col">
+          <div>
+            <div class="field"><label>สิ่งที่เกิดขึ้นจริง</label><textarea id="f_whatHappened" rows="2"></textarea></div>
+            <div class="field"><label>Entry ถูกต้องหรือไม่</label><textarea id="f_entryCorrect" rows="2"></textarea></div>
+            <div class="field"><label>Exit ถูกต้องหรือไม่</label><textarea id="f_exitCorrect" rows="2"></textarea></div>
+            <div class="field"><label>ผิดถูก / สิ่งที่ผิดพลาด</label><textarea id="f_whatWrong" rows="2"></textarea></div>
+            <div class="field"><label>สิ่งที่ควรทำครั้งต่อไป</label><textarea id="f_nextTime" rows="2"></textarea></div>
+          </div>
+          <div class="stats-col">
+            <div class="stats-title">STATS (เก็บข้อมูลเพื่อวิเคราะห์)</div>
+            <div class="stat-row"><label>SL (R)</label><input type="text" class="mono" id="f_slR"></div>
+            <div class="stat-row"><label>TP (R)</label><input type="text" class="mono" id="f_tpR"></div>
+            <div class="stat-row"><label>Result (R)</label><input type="text" class="mono" id="f_resultR"></div>
+            <div class="stat-row"><label>MFE (R)</label><input type="text" class="mono" id="f_mfeR"></div>
+            <div class="stat-row"><label>MAE (R)</label><input type="text" class="mono" id="f_maeR"></div>
+            <div class="stat-row"><label>Hold Time</label><input type="text" class="mono" id="f_holdTime"></div>
+            <div class="stat-row">
+              <label>Rule Violation</label>
+              <div class="pill-toggle small" data-field="ruleViolation">
+                <button type="button" data-val="Yes" class="pill pill-loss">Yes</button>
+                <button type="button" data-val="No" class="pill pill-win">No</button>
+              </div>
+            </div>
+            <div class="stat-row">
+              <label>Emotional State</label>
+              <div class="pill-toggle small" data-field="emotionalState">
+                <button type="button" data-val="Good" class="pill">🙂</button>
+                <button type="button" data-val="Neutral" class="pill">😐</button>
+                <button type="button" data-val="Bad" class="pill">☹️</button>
+              </div>
+            </div>
+            <div class="field"><label>Notes</label><textarea id="f_statsNotes" rows="2"></textarea></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head head-review"><span class="ico">⑤</span> TRADE REVIEW (ให้คะแนน)</div>
+        <div class="panel-body">
+          <div id="ratingBlock"></div>
+          <div class="total-score">
+            <span>TOTAL SCORE</span>
+            <span id="totalScore" class="mono">0 / 30</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head head-lesson"><span class="ico">⑥</span> LESSON & TAG</div>
+        <div class="panel-body">
+          <label class="tags-label">Tags (เลือกได้หลายอัน)</label>
+          <div id="tagBlock" class="tag-block"></div>
+          <div class="field">
+            <label>Key Lesson (บทเรียนสำคัญ)</label>
+            <textarea id="f_keyLesson" rows="3"></textarea>
+          </div>
+          <div class="field">
+            <label>💡 Quote / Reminder</label>
+            <textarea id="f_quote" rows="2"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel free-note-panel">
+      <div class="panel-head head-free"><span class="ico">✎</span> FREE NOTE</div>
+      <div class="panel-body">
+        <textarea id="f_freeNote" rows="2"></textarea>
+      </div>
+    </div>
+
+    <div class="save-bar">
+      <div id="saveStatus" class="save-status"></div>
+      <button id="deleteTradeBtn" class="btn btn-danger" style="display:none">ลบเทรดนี้</button>
+      <button id="saveTradeBtn" class="btn btn-primary">💾 บันทึกเทรด</button>
+    </div>
+
+  </section>
+</main>
+
+<!-- ===================== ANNOTATION MODAL ===================== -->
+<div id="annotateModal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <span id="annotateTitle">แนบรูป / วาดโน้ต</span>
+      <button id="annotateClose" class="btn btn-ghost tiny">✕ ปิด</button>
+    </div>
+    <div class="modal-toolbar">
+      <label class="filebtn btn btn-ghost small">
+        📁 เลือกรูป
+        <input type="file" id="fileInput" accept="image/*" hidden>
+      </label>
+      <button id="pasteBtn" class="btn btn-ghost small">📋 วาง (Paste)</button>
+      <span class="sep"></span>
+      <label class="tool-label">สี</label>
+      <input type="color" id="penColor" value="#ff4d4d">
+      <label class="tool-label">ขนาด</label>
+      <input type="range" id="penSize" min="1" max="20" value="3">
+      <button id="undoBtn" class="btn btn-ghost small">↶ Undo</button>
+      <button id="clearBtn" class="btn btn-ghost small">🗑 ล้าง</button>
+      <span class="sep"></span>
+      <button id="uploadDriveBtn" class="btn btn-accent small">☁ อัปโหลดขึ้น Drive</button>
+    </div>
+    <div class="canvas-stage">
+      <canvas id="drawCanvas"></canvas>
+      <div id="canvasEmpty" class="canvas-empty">วางรูป / เลือกไฟล์ แล้ววาดทับได้เลย<br><span>รองรับ Apple Pencil บน iPad</span></div>
+    </div>
+    <div class="modal-status" id="uploadStatus"></div>
+  </div>
+</div>
+
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
