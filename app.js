@@ -612,8 +612,8 @@ function renderTicker(){
     const res = t.toggles?.result || "-";
     const cls = res==="Win"?"tk-win":res==="Loss"?"tk-loss":"tk-be";
     const asset = t.fields?.f_asset || "—";
-    const pl = t.fields?.f_plR || "";
-    return `<div class="ticker-item"><b>${escapeHtml(asset)}</b><span class="${cls}">${res}</span>${pl?`<span>${escapeHtml(pl)}R</span>`:""}</div>`;
+    const pl = t.fields?.f_plMoney || "";
+    return `<div class="ticker-item"><b>${escapeHtml(asset)}</b><span class="${cls}">${res}</span>${pl?`<span>$${escapeHtml(pl)}</span>`:""}</div>`;
   }).join("");
 }
 
@@ -646,7 +646,7 @@ function renderTradeList(){
       <span class="mono">${t.fields?.f_date || "-"}</span>
       <span><b>${escapeHtml(t.fields?.f_asset || "—")}</b></span>
       <span class="mono">${dir}</span>
-      <span class="mono">${escapeHtml(t.fields?.f_plR||"")}</span>
+      <span class="mono">${escapeHtml(t.fields?.f_plMoney||"")}</span>
       <span class="res-badge res-${res}">${res}</span>
       <span class="tag-mini">${(t.tags||[]).map(x=>"#"+x).join(" ")}</span>
       <span class="mono">${escapeHtml(t.fields?.f_tradeNo||"")}</span>
