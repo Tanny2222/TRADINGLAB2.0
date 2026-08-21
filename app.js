@@ -125,7 +125,7 @@ function bindPillToggles(){
         } else {
           delete current.toggles[field];
         }
-        if(field === "direction") updateCalculatedRR();
+        if(field === "direction") updateCalculatedStats();
       });
     });
   });
@@ -218,7 +218,7 @@ function bindFieldAutosync(){
   allFieldInputs().forEach(inp => {
     inp.addEventListener("input", () => {
       current.fields[inp.id] = inp.value;
-      if(["f_entryPrice", "f_slPrice", "f_exitPrice"].includes(inp.id)) updateCalculatedRR();
+      if(["f_entryPrice", "f_slPrice", "f_exitPrice", "f_entryTime", "f_exitTime"].includes(inp.id)) updateCalculatedStats();
     });
   });
 }
@@ -280,22 +280,61 @@ function parsePrice(value){
   return Number.isFinite(number) ? number : null;
 }
 
-function updateCalculatedRR(){
+function setCalculatedField(id, value){
+  current.fields[id] = value;
+  const output = document.getElementById(id);
+  if(output) output.value = value;
+}
+
+function formatHoldTime(milliseconds){
+  let minutes = Math.floor(milliseconds / 60000);
+  const days = Math.floor(minutes / 1440);
+  minutes %= 1440;
+  const hours = Math.floor(minutes / 60);
+  minutes %= 60;
+  const parts = [];
+  if(days) parts.push(`${days}d`);
+  if(hours) parts.push(`${hours}h`);
+  if(minutes || parts.length === 0) parts.push(`${minutes}m`);
+  return parts.join(" ");
+}
+
+function updateCalculatedStats(){
   const entry = parsePrice(current.fields.f_entryPrice);
   const stop = parsePrice(current.fields.f_slPrice);
   const exit = parsePrice(current.fields.f_exitPrice);
   const direction = current.toggles.direction;
-  let result = "";
+  let rrText = "";
+  let slR = "";
+  let tpR = "";
+  let resultR = "";
 
-  if(entry !== null && stop !== null && exit !== null && direction){
+  if(entry !== null && stop !== null && direction){
     const risk = direction === "Long" ? entry - stop : stop - entry;
-    const reward = direction === "Long" ? exit - entry : entry - exit;
-    if(risk > 0) result = `1 : ${(reward / risk).toFixed(2)}`;
+    if(risk > 0){
+      slR = "-1.00 R";
+      if(exit !== null){
+        const reward = direction === "Long" ? exit - entry : entry - exit;
+        const multiple = reward / risk;
+        rrText = `1 : ${multiple.toFixed(2)}`;
+        tpR = `${multiple.toFixed(2)} R`;
+        resultR = `${multiple.toFixed(2)} R`;
+      }
+    }
   }
 
-  current.fields.f_rrMultiple = result;
-  const output = document.getElementById("f_rrMultiple");
-  if(output) output.value = result;
+  let holdTime = "";
+  const entryTime = Date.parse(current.fields.f_entryTime || "");
+  const exitTime = Date.parse(current.fields.f_exitTime || "");
+  if(Number.isFinite(entryTime) && Number.isFinite(exitTime) && exitTime >= entryTime){
+    holdTime = formatHoldTime(exitTime - entryTime);
+  }
+
+  setCalculatedField("f_rrMultiple", rrText);
+  setCalculatedField("f_slR", slR);
+  setCalculatedField("f_tpR", tpR);
+  setCalculatedField("f_resultR", resultR);
+  setCalculatedField("f_holdTime", holdTime);
 }
 
 function loadFormFromCurrent(){
@@ -308,7 +347,7 @@ function loadFormFromCurrent(){
   }
   allFieldInputs().forEach(inp => { inp.value = current.fields[inp.id] || ""; });
   applyToggleState();
-  updateCalculatedRR();
+  updateCalculatedStats();
   applyTagState();
   renderStars();
   updateTotalScore();

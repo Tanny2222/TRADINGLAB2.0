@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20260821-08">
+  <link rel="stylesheet" href="style.css?v=20260821-09">
 </head>
 <body>
 
@@ -200,12 +200,10 @@
           </div>
           <div class="stats-col">
             <div class="stats-title">STATS (เก็บข้อมูลเพื่อวิเคราะห์)</div>
-            <div class="stat-row"><label>SL (R)</label><input type="text" class="mono" id="f_slR"></div>
-            <div class="stat-row"><label>TP (R)</label><input type="text" class="mono" id="f_tpR"></div>
-            <div class="stat-row"><label>Result (R)</label><input type="text" class="mono" id="f_resultR"></div>
-            <div class="stat-row"><label>MFE (R)</label><input type="text" class="mono" id="f_mfeR"></div>
-            <div class="stat-row"><label>MAE (R)</label><input type="text" class="mono" id="f_maeR"></div>
-            <div class="stat-row"><label>Hold Time</label><input type="text" class="mono" id="f_holdTime"></div>
+            <div class="stat-row"><label>SL (R)</label><input type="text" class="mono" id="f_slR" placeholder="คำนวณอัตโนมัติ" readonly aria-readonly="true"></div>
+            <div class="stat-row"><label>TP (R)</label><input type="text" class="mono" id="f_tpR" placeholder="คำนวณอัตโนมัติ" readonly aria-readonly="true"></div>
+            <div class="stat-row"><label>Result (R)</label><input type="text" class="mono" id="f_resultR" placeholder="คำนวณอัตโนมัติ" readonly aria-readonly="true"></div>
+            <div class="stat-row"><label>Hold Time</label><input type="text" class="mono" id="f_holdTime" placeholder="คำนวณอัตโนมัติ" readonly aria-readonly="true"></div>
             <div class="stat-row">
               <label>Rule Violation</label>
               <div class="pill-toggle small" data-field="ruleViolation">
@@ -321,6 +319,6 @@
 
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="config.js"></script>
-<script src="app.js?v=20260821-08"></script>
+<script src="app.js?v=20260821-09"></script>
 </body>
 </html>
