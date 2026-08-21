@@ -234,6 +234,19 @@ function bindSmartTextareas(){
     });
 
     textarea.addEventListener("keydown", event => {
+      if(event.key === " " && textarea.selectionStart === textarea.selectionEnd){
+        const caret = textarea.selectionStart;
+        const lineStart = textarea.value.lastIndexOf("\n", caret - 1) + 1;
+        const currentLine = textarea.value.slice(lineStart, caret);
+        const bulletStart = currentLine.match(/^(\s*)-$/);
+        if(bulletStart){
+          event.preventDefault();
+          textarea.setRangeText(`${bulletStart[1]}• `, lineStart, caret, "end");
+          textarea.dispatchEvent(new Event("input", {bubbles:true}));
+          return;
+        }
+      }
+
       if(event.key !== "Enter" || event.shiftKey || textarea.selectionStart !== textarea.selectionEnd) return;
 
       const caret = textarea.selectionStart;

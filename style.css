@@ -181,6 +181,9 @@ button{font-family:var(--font-body);cursor:pointer;}
 .row2 .field{margin-bottom:0;}
 
 .grid-2top{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;margin-bottom:16px;}
+.trade-context-grid{align-items:stretch;}
+.trade-context-grid > .panel{height:100%;display:flex;flex-direction:column;}
+.trade-context-grid > .panel > .panel-body{flex:1;}
 .grid-4{display:grid;grid-template-columns:2fr 1fr 1fr;gap:16px;margin-top:16px;align-items:start;}
 .col{display:flex;flex-direction:column;gap:16px;}
 .span2{grid-column:span 1;}
@@ -196,6 +199,8 @@ button{font-family:var(--font-body);cursor:pointer;}
 }
 .cols-in-panel .field{min-width:0;margin-bottom:0;}
 .cols-in-panel .span-all{grid-column:1 / -1;}
+.long-text{min-height:118px;}
+.smart-list-hint{margin-top:6px;color:var(--text-faint);font-size:10.5px;line-height:1.4;}
 
 /* three images side-by-side using full row width */
 .imgrow3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:10px;}
