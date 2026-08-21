@@ -397,12 +397,10 @@ function renderImageSlot(slot){
   if(img || isAdditional){
     const deleteButton = document.createElement("button");
     deleteButton.type = "button";
-    deleteButton.className = isAdditional ? "image-delete-btn additional-delete-btn" : "image-delete-btn";
-    deleteButton.textContent = isAdditional ? "✕" : "✕ ลบรูป";
-    if(isAdditional){
-      deleteButton.title = "ลบกล่องและรูป";
-      deleteButton.setAttribute("aria-label", "ลบกล่องและรูป");
-    }
+    deleteButton.className = "image-delete-btn";
+    deleteButton.textContent = "✕";
+    deleteButton.title = isAdditional ? "ลบกล่องและรูป" : "ลบรูป";
+    deleteButton.setAttribute("aria-label", deleteButton.title);
     deleteButton.addEventListener("click", event => {
       event.stopPropagation();
       deleteImageFromSlot(slot);
