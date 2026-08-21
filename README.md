@@ -13,12 +13,12 @@ config.js    ใส่ Google Client ID ของคุณที่นี่ (�
 ## ขั้นตอนที่ 1 — ตั้งค่า Google Cloud (ทำครั้งเดียว)
 
 1. เข้า https://console.cloud.google.com/ แล้วสร้างโปรเจกต์ใหม่ (ชื่ออะไรก็ได้ เช่น `trading-journal`)
-2. ไปที่เมนู **APIs & Services > Library** ค้นหา **Google Drive API** แล้วกด **Enable**
+2. ไปที่เมนู **APIs & Services > Library** แล้วเปิดใช้งานทั้ง **Google Drive API** และ **Google Sheets API**
 3. ไปที่ **APIs & Services > OAuth consent screen**
    - User Type: เลือก **External**
    - กรอกชื่อแอป, อีเมลตัวเอง แล้วกด Save ไปเรื่อย ๆ
    - ในหน้า **Test users** ให้เพิ่มอีเมล Gmail ของคุณเอง (บัญชีที่จะใช้ล็อกอินตอนใช้งานแอป)
-   - Publishing status ปล่อยเป็น **Testing** ได้เลย ไม่ต้องส่งให้ Google ตรวจสอบ เพราะสิทธิ์ที่ขอ (`drive.file`) เป็นสิทธิ์ระดับต่ำ (เข้าถึงได้เฉพาะไฟล์ที่แอปสร้างเอง) — ใช้กับ test user สูงสุด 100 คนได้โดยไม่ต้องขอ verify
+   - Publishing status ปล่อยเป็น **Testing** ได้ และเพิ่มบัญชีผู้ใช้ใน Test users เพื่ออนุญาตสิทธิ์ Drive และ Sheets
 4. ไปที่ **APIs & Services > Credentials > Create Credentials > OAuth client ID**
    - Application type: **Web application**
    - Authorized JavaScript origins ใส่:
@@ -30,7 +30,7 @@ config.js    ใส่ Google Client ID ของคุณที่นี่ (�
    const GOOGLE_CLIENT_ID = "วาง-client-id-ของคุณที่นี่.apps.googleusercontent.com";
    ```
 
-> หมายเหตุ: แอปขอสิทธิ์แบบ `drive.file` เท่านั้น หมายความว่าแอปจะเข้าถึง **เฉพาะไฟล์ที่แอปนี้อัปโหลดเอง** ไม่สามารถอ่านไฟล์อื่นในไดรฟ์ของคุณได้ และรูปที่อัปโหลดจะถูกตั้งสิทธิ์เป็น "ทุกคนที่มีลิงก์ดูได้" (Anyone with the link) เพื่อให้แอปแสดง thumbnail ได้โดยไม่ต้องล็อกอินใหม่ทุกครั้ง — ถ้าต้องการความเป็นส่วนตัวสูงกว่านี้ สามารถเข้าไปปรับสิทธิ์ไฟล์ในโฟลเดอร์ `TradingJournalImages` บน Drive ได้ภายหลัง
+> หมายเหตุ: แอปขอสิทธิ์ `drive.file` สำหรับไฟล์ที่แอปสร้าง และสิทธิ์ Google Sheets สำหรับอ่าน/เขียนไฟล์ `TradingJournalData` ส่วนรูปจะอยู่ในโฟลเดอร์ `TradingJournalImages`
 
 ## ขั้นตอนที่ 2 — Deploy ขึ้น GitHub Pages
 
@@ -55,7 +55,7 @@ config.js    ใส่ Google Client ID ของคุณที่นี่ (�
 
 ## ข้อควรรู้ / ข้อจำกัด
 
-- **ข้อมูลฟอร์ม** (ตัวเลข, ข้อความ, tag, คะแนน) เก็บอยู่ใน localStorage ของเบราว์เซอร์เครื่องนั้น ๆ เท่านั้น — ถ้าเปลี่ยนเครื่อง/เบราว์เซอร์ หรือล้าง cache จะหายไป แนะนำให้กด Export JSON สำรองไว้เป็นระยะ
+- **ข้อมูลฟอร์ม** เก็บใน Google Sheet ชื่อ `TradingJournalData` ที่ระบบสร้างให้อัตโนมัติใน Drive และ sync หลังเชื่อมต่อ Google
 - **รูปภาพ** เก็บบน Google Drive จริง ปลอดภัยกว่าและใช้พื้นที่ browser storage น้อย
 - Token การเข้าถึง Drive จะหมดอายุประมาณ 1 ชั่วโมง กด "เชื่อมต่อ Google Drive" ซ้ำได้ทุกเมื่อถ้าอัปโหลดไม่ผ่าน
 - ต้องการหลายคนใช้งานพร้อมกัน/sync ข้ามเครื่องแบบเรียลไทม์ — เวอร์ชันนี้ยังไม่รองรับ (เป็น local-only + Drive สำหรับรูป) หากต้องการ sync ข้อมูลฟอร์มข้ามเครื่องด้วย แจ้งได้ เดี๋ยวต่อยอดให้ใช้ Google Sheets หรือ Firebase เป็นฐานข้อมูลกลาง

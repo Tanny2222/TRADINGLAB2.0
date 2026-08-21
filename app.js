@@ -5,6 +5,7 @@
 
 const STORAGE_KEY = "tj_trades_v1";
 const FOLDER_ID_KEY = "tj_drive_folder_id";
+const SHEET_ID_KEY = "tj_google_sheet_id";
 const SETTINGS_KEY = "tj_custom_options_v1";
 
 const DEFAULT_OPTIONS = {
@@ -46,6 +47,8 @@ let drawing = false;
 let selectedPenColor = "#ff4d4d";
 let accessToken = null;
 let tokenClient = null;
+let sheetId = null;
+let sheetReady = false;
 
 // ============================================================
 // INIT
@@ -983,10 +986,19 @@ function initGoogleAuth(){
     tokenClient = google.accounts.oauth2.initTokenClient({
       client_id: GOOGLE_CLIENT_ID,
       scope: DRIVE_SCOPE,
-      callback: (resp) => {
+      callback: async (resp) => {
         if(resp.error){ setDriveStatus(false); return; }
         accessToken = resp.access_token;
-        setDriveStatus(true);
+        setDriveStatus(true, "กำลังเชื่อมต่อ Google Sheet...");
+        try{
+          await initializeGoogleSheetStorage();
+          setDriveStatus(true);
+        }catch(error){
+          console.error(error);
+          sheetReady = false;
+          setDriveStatus(false, "เชื่อมต่อ Sheet ไม่สำเร็จ");
+          alert("เชื่อมต่อ Google Sheet ไม่สำเร็จ กรุณาตรวจว่าเปิด Google Sheets API ใน Google Cloud แล้ว");
+        }
       }
     });
   };
@@ -1000,11 +1012,89 @@ function requestDriveAccess(){
   }
   tokenClient.requestAccessToken({ prompt: accessToken ? "" : "consent" });
 }
-function setDriveStatus(connected){
+function setDriveStatus(connected, message=""){
   const button = document.getElementById("connectDriveBtn");
   button.classList.toggle("connected", connected);
   button.classList.toggle("disconnected", !connected);
-  document.getElementById("driveStatusText").textContent = connected ? "Google Drive เชื่อมต่อแล้ว" : "เชื่อมต่อ Google Drive";
+  document.getElementById("driveStatusText").textContent = message || (connected ? "Google Drive + Sheet เชื่อมต่อแล้ว" : "เชื่อมต่อ Google Drive");
+}
+
+async function googleApi(url, options={}){
+  const response = await fetch(url, {...options, headers:{Authorization:`Bearer ${accessToken}`, ...(options.headers || {})}});
+  if(!response.ok){
+    let detail = "";
+    try{ detail = (await response.json()).error?.message || ""; }catch(e){}
+    throw new Error(detail || `Google API error ${response.status}`);
+  }
+  if(response.status === 204) return null;
+  return response.json();
+}
+
+async function ensureTradingSheet(){
+  const cached = localStorage.getItem(SHEET_ID_KEY);
+  if(cached){
+    try{
+      await googleApi(`https://sheets.googleapis.com/v4/spreadsheets/${cached}?fields=spreadsheetId`);
+      return cached;
+    }catch(e){ localStorage.removeItem(SHEET_ID_KEY); }
+  }
+  const q = encodeURIComponent(`name='${TRADING_SHEET_NAME}' and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false`);
+  const found = await googleApi(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)&orderBy=modifiedTime desc`);
+  if(found.files?.length){
+    localStorage.setItem(SHEET_ID_KEY, found.files[0].id);
+    return found.files[0].id;
+  }
+  const created = await googleApi("https://sheets.googleapis.com/v4/spreadsheets", {
+    method:"POST", headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({properties:{title:TRADING_SHEET_NAME},sheets:[{properties:{title:"Trades"}}]})
+  });
+  localStorage.setItem(SHEET_ID_KEY, created.spreadsheetId);
+  return created.spreadsheetId;
+}
+
+function tradeForSheet(trade){
+  const copy = JSON.parse(JSON.stringify(trade));
+  Object.values(copy.images || {}).forEach(image => { if(image && typeof image === "object") delete image.localDataUrl; });
+  return copy;
+}
+
+function tradeToSheetRow(trade){
+  const clean = tradeForSheet(trade);
+  return [clean.id || "", clean.fields?.f_tradeNo || "", clean.fields?.f_asset || "", clean.fields?.f_entryTime || "", clean.toggles?.direction || "", clean.toggles?.result || "", clean.fields?.f_plMoney || "", clean.updatedAt || clean.createdAt || "", JSON.stringify(clean)];
+}
+
+async function readTradesFromSheet(){
+  const data = await googleApi(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Trades!A2:I`);
+  return (data.values || []).map(row => { try{ return JSON.parse(row[8]); }catch(e){ return null; } }).filter(Boolean);
+}
+
+async function writeAllTradesToSheet(nextTrades=trades){
+  const rows = [["ID","Trade #","Asset","Entry Datetime","Direction","Result","PnL","Updated At","Trade JSON"], ...nextTrades.map(tradeToSheetRow)];
+  await googleApi(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Trades!A:I:clear`, {method:"POST",headers:{"Content-Type":"application/json"},body:"{}"});
+  await googleApi(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Trades!A1:I?valueInputOption=RAW`, {method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({range:"Trades!A1:I",majorDimension:"ROWS",values:rows})});
+}
+
+function mergeTrades(remoteTrades, localTrades){
+  const byId = new Map();
+  [...remoteTrades, ...localTrades].forEach(trade => {
+    const old = byId.get(trade.id);
+    if(!old || (trade.updatedAt || trade.createdAt || 0) >= (old.updatedAt || old.createdAt || 0)) byId.set(trade.id, trade);
+  });
+  return [...byId.values()];
+}
+
+async function initializeGoogleSheetStorage(){
+  sheetId = await ensureTradingSheet();
+  const remoteTrades = await readTradesFromSheet();
+  const localTrades = loadTrades();
+  trades = mergeTrades(remoteTrades, localTrades);
+  if(localTrades.length || (!remoteTrades.length && trades.length)) await writeAllTradesToSheet(trades);
+  localStorage.removeItem(STORAGE_KEY);
+  sheetReady = true;
+  current = current.id ? (trades.find(trade => trade.id === current.id) || current) : blankTrade();
+  loadFormFromCurrent();
+  renderTicker();
+  if(document.getElementById("listView").classList.contains("active")) renderTradeList();
 }
 
 async function ensureDriveFolder(){
@@ -1107,33 +1197,50 @@ async function handleUpload(){
 }
 
 // ============================================================
-// SAVE / LOAD / DELETE TRADES (localStorage)
+// SAVE / LOAD / DELETE TRADES (Google Sheets; localStorage is migration-only)
 // ============================================================
 function loadTrades(){
   try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }catch(e){ return []; }
 }
-function persistTrades(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(trades)); }
-
 function bindSaveBar(){
   document.getElementById("saveTradeBtn").onclick = saveCurrentTrade;
   document.getElementById("deleteTradeBtn").onclick = deleteCurrentTrade;
 }
-function saveCurrentTrade(){
+async function saveCurrentTrade(){
+  if(!accessToken || !sheetReady){
+    alert("กรุณาเชื่อมต่อ Google Drive + Sheet ก่อนบันทึกเทรด");
+    requestDriveAccess();
+    return;
+  }
   if(!current.fields.f_tradeNo) current.fields.f_tradeNo = String(nextTradeNumber());
   if(!current.id) current.id = "t_" + Date.now();
   current.updatedAt = Date.now();
   const idx = trades.findIndex(t=>t.id===current.id);
   if(idx>=0) trades[idx] = current; else trades.push(current);
-  persistTrades();
-  document.getElementById("saveStatus").textContent = "✅ บันทึกแล้ว";
-  document.getElementById("deleteTradeBtn").style.display = "inline-block";
-  renderTicker();
+  document.getElementById("saveStatus").textContent = "กำลังบันทึกลง Google Sheet...";
+  try{
+    trades = mergeTrades(await readTradesFromSheet(), trades);
+    await writeAllTradesToSheet();
+    document.getElementById("saveStatus").textContent = "✅ บันทึกลง Google Sheet แล้ว";
+    document.getElementById("deleteTradeBtn").style.display = "inline-block";
+    renderTicker();
+  }catch(error){
+    console.error(error);
+    document.getElementById("saveStatus").textContent = "❌ บันทึกไม่สำเร็จ";
+    alert("บันทึกลง Google Sheet ไม่สำเร็จ: " + error.message);
+  }
 }
-function deleteCurrentTrade(){
+async function deleteCurrentTrade(){
   if(!current.id) return;
-  if(!confirm("ลบเทรดนี้ออกจากบันทึก? (รูปใน Google Drive จะไม่ถูกลบ)")) return;
-  trades = trades.filter(t=>t.id!==current.id);
-  persistTrades();
+  if(!sheetReady){ alert("กรุณาเชื่อมต่อ Google Sheet ก่อนลบเทรด"); return; }
+  if(!confirm("ลบเทรดนี้ออกจาก Google Sheet? (รูปใน Google Drive จะไม่ถูกลบ)")) return;
+  let nextTrades;
+  try{
+    const latestTrades = mergeTrades(await readTradesFromSheet(), trades);
+    nextTrades = latestTrades.filter(t=>t.id!==current.id);
+    await writeAllTradesToSheet(nextTrades);
+  }catch(error){ alert("ลบจาก Google Sheet ไม่สำเร็จ: " + error.message); return; }
+  trades = nextTrades;
   current = blankTrade();
   loadFormFromCurrent();
   renderTicker();
