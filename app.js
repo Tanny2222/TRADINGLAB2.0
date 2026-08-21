@@ -374,36 +374,43 @@ function renderImageSlot(slot){
   if(!wrap) return;
   slotEl.querySelector(".image-delete-btn")?.remove();
   const img = current.images[slot];
+  const isAdditional = Number(slot.match(/^before_extra_(\d+)$/)?.[1] || 0) >= 2;
   if(img && (img.thumbnailLink || img.localDataUrl)){
     wrap.innerHTML = `<img src="${img.thumbnailLink || img.localDataUrl}" alt="">`;
+  } else {
+    wrap.innerHTML = `<div class="imgslot-placeholder">🖼</div>`;
+  }
+  if(img || isAdditional){
     const deleteButton = document.createElement("button");
     deleteButton.type = "button";
     deleteButton.className = "image-delete-btn";
-    deleteButton.textContent = "✕ ลบรูป";
+    deleteButton.textContent = isAdditional ? "✕ ลบกล่องและรูป" : "✕ ลบรูป";
     deleteButton.addEventListener("click", event => {
       event.stopPropagation();
       deleteImageFromSlot(slot);
     });
     slotEl.appendChild(deleteButton);
-  } else {
-    wrap.innerHTML = `<div class="imgslot-placeholder">🖼</div>`;
   }
 }
 
 function deleteImageFromSlot(slot){
-  if(!current.images[slot]) return false;
-  if(!confirm("ลบรูปนี้ออกจากเทรด? (ไฟล์ใน Google Drive จะไม่ถูกลบ)")) return false;
+  const isAdditional = Number(slot.match(/^before_extra_(\d+)$/)?.[1] || 0) >= 2;
+  if(!current.images[slot] && !isAdditional) return false;
+  const message = isAdditional
+    ? "ลบกล่อง Additional Chart และรูปนี้ออกจากเทรด? (ไฟล์ใน Google Drive จะไม่ถูกลบ)"
+    : "ลบรูปนี้ออกจากเทรด? (ไฟล์ใน Google Drive จะไม่ถูกลบ)";
+  if(!confirm(message)) return false;
   delete current.images[slot];
 
-  if(/^before_extra_\d+$/.test(slot)){
+  if(isAdditional){
     const remaining = Object.entries(current.images)
-      .filter(([key]) => /^before_extra_\d+$/.test(key))
+      .filter(([key]) => Number(key.match(/^before_extra_(\d+)$/)?.[1] || 0) >= 2)
       .sort(([a], [b]) => Number(a.split("_").pop()) - Number(b.split("_").pop()))
       .map(([, image]) => image);
     Object.keys(current.images).forEach(key => {
-      if(/^before_extra_\d+$/.test(key)) delete current.images[key];
+      if(Number(key.match(/^before_extra_(\d+)$/)?.[1] || 0) >= 2) delete current.images[key];
     });
-    remaining.forEach((image, index) => { current.images[`before_extra_${index + 1}`] = image; });
+    remaining.forEach((image, index) => { current.images[`before_extra_${index + 2}`] = image; });
     current.beforeSlotCount = 4 + remaining.length;
     renderAllImageSlots();
   } else {
